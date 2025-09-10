@@ -44,7 +44,7 @@ public final class JSONPath {
 
     public @Nullable JSONValue<?> get(@NotNull JSONObject jsonObject) {
         JSONPathNode<?, ?> node = root;
-        JSONValue<?> p = jsonObject;
+        JSONValue<?> p = jsonObject;//
 
         while (node.child != null) {
             p = value(node, p);
