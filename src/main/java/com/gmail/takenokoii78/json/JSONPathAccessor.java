@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@Deprecated
 public final class JSONPathAccessor {
     private final JSONObject initialObject;
 
@@ -94,12 +95,12 @@ public final class JSONPathAccessor {
         return switch (currentStructure) {
             case JSONObject jsonObject -> {
                 if (jsonObject.hasKey(key)) {
-                    final Object nextStructure = jsonObject.getKey(key, jsonObject.getTypeOfKey(key));
+                    final Object nextStructure = jsonObject.get(key, jsonObject.getTypeOf(key));
                     yield new Pair<>(nextStructure, JSONLocationAccessor.of(jsonObject, key));
                 }
                 else if (createWay) {
                     final JSONObject nextStructure = new JSONObject();
-                    jsonObject.setKey(key, nextStructure);
+                    jsonObject.set(key, nextStructure);
                     yield new Pair<>(nextStructure, JSONLocationAccessor.of(jsonObject, key));
                 }
                 else yield null;
@@ -223,22 +224,22 @@ public final class JSONPathAccessor {
 
             @Override
             public @NotNull JSONValueType<?> getType() {
-                return structure.getTypeOfKey(key);
+                return structure.getTypeOf(key);
             }
 
             @Override
             public <P extends JSONValue<?>> @NotNull P get(@NotNull JSONValueType<P> type) {
-                return structure.getKey(key, type);
+                return structure.get(key, type);
             }
 
             @Override
             public <P> void set(@NotNull P value) {
-                structure.setKey(key, value);
+                structure.set(key, value);
             }
 
             @Override
             public void delete() {
-                structure.deleteKey(key);
+                structure.delete(key);
             }
         }
 

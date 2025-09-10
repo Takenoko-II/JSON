@@ -157,9 +157,11 @@ public class JSONPathParser {
                 throw newException("期待された文字は非記号文字です");
             }
             else if (QUOTES.contains(c)) {
-                sb.append(c);
+                if (!sb.isEmpty()) {
+                    throw newException("TODO");
+                }
+
                 sb.append(string());
-                sb.append(c);
                 continue;
             }
             else if (c == DOT || c == ARRAY_BRACES[0]) {
@@ -174,7 +176,6 @@ public class JSONPathParser {
                 while (!isOver()) {
                     final char c2 = peek(false);
 
-                    //System.out.println(c2);
                     if (c2 == ARRAY_BRACES[0] || c2 == OBJECT_BRACES[0]) {
                         depth++;
                     }
@@ -194,8 +195,6 @@ public class JSONPathParser {
 
                 json.append(sb2);
 
-                System.out.println(json);
-                System.out.println(depth);
                 return new String[]{sb.toString(), json.toString()};
             }
 

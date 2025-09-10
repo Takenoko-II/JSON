@@ -100,7 +100,7 @@ public class JSONFile {
         return JSONParser.structure(readFromFile());
     }
 
-    public void write(@NotNull JSONStructure structure) throws JSONSerializeException, IllegalStateException {
+    public void write(@NotNull JSONStructure structure) throws JSONSerializationException, IllegalStateException {
         writeToFile(JSONSerializer.serialize(structure));
     }
 
@@ -112,7 +112,7 @@ public class JSONFile {
         return JSONParser.array(readFromFile());
     }
 
-    public void edit(@NotNull Function<JSONStructure, JSONStructure> function) throws JSONParseException, JSONSerializeException, IllegalStateException {
+    public void edit(@NotNull Function<JSONStructure, JSONStructure> function) throws JSONParseException, JSONSerializationException, IllegalStateException {
         write(function.apply(read()));
     }
 }

@@ -7,6 +7,8 @@ import com.gmail.takenokoii78.json.values.JSONStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BiFunction;
+
 public abstract class JSONPathNode<S extends JSONStructure, T> {
     protected final T parameter;
 
@@ -19,6 +21,10 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
 
     public abstract @Nullable JSONValue<?> get(@NotNull S structure);
 
+    public abstract <U> @Nullable U access(@NotNull S structure, @NotNull BiFunction<S, Object, U> function);
+
+    public abstract @NotNull String toString();
+
     public static final class ObjectKeyNode extends JSONPathNode<JSONObject, String> {
         public ObjectKeyNode(@NotNull String name, @Nullable JSONPathNode<?, ?> child) {
             super(name, child);
@@ -27,7 +33,17 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         @Override
         public @Nullable JSONValue<?> get(@NotNull JSONObject structure) {
             if (!structure.hasKey(parameter)) return null;
-            else return structure.getKey(parameter, structure.getTypeOfKey(parameter));
+            else return structure.get(parameter, structure.getTypeOf(parameter));
+        }
+
+        @Override
+        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+            return function.apply(structure, parameter);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "ObjectKey<" + parameter + ">";
         }
     }
 
@@ -41,6 +57,16 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
             if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeAt(parameter));
         }
+
+        @Override
+        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+            return function.apply(structure, parameter);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "ArrayIndex<" + parameter + ">";
+        }
     }
 
     public static final class ObjectKeyCheckerNode extends JSONPathNode<JSONObject, Pair<String, JSONObject>> {
@@ -52,7 +78,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         public @Nullable JSONObject get(@NotNull JSONObject structure) {
             if (!structure.hasKey(parameter.a())) return null;
             else {
-                final JSONObject value = structure.getKey(parameter.a(), JSONValueTypes.OBJECT);
+                final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
 
                 if (value instanceof JSONObject target) {
                     final JSONObject condition = parameter.b();
@@ -63,6 +89,29 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
                 }
                 else return null;
             }
+        }
+
+        @Override
+        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+            if (!structure.hasKey(parameter.a())) return null;
+            else {
+                final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
+
+                if (value instanceof JSONObject target) {
+                    final JSONObject condition = parameter.b();
+                    if (target.isSuperOf(condition)) {
+                        // return value;
+                        return function.apply(structure, parameter.a());
+                    }
+                    else return null;
+                }
+                else return null;
+            }
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "ObjectKeyChecker<" + parameter.a() + ", " + parameter.b() + ">";
         }
     }
 
@@ -90,6 +139,34 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
             }
 
             return null;
+        }
+
+        @Override
+        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+            for (int i = 0; i < structure.length(); i++) {
+                if (structure.getTypeAt(i) != JSONValueTypes.OBJECT) {
+                    continue;
+                }
+
+                final JSONObject element = structure.get(i, JSONValueTypes.OBJECT);
+
+                if (element instanceof JSONObject object) {
+                    if (object.isSuperOf(parameter)) {
+                        // return element;
+                        return function.apply(structure, i);
+                    }
+                    else return null;
+                }
+                else return null;
+            }
+
+            return null;
+        }
+
+        @NotNull
+        @Override
+        public String toString() {
+            return "ArrayIndexFinder<" + parameter + ">";
         }
     }
 }

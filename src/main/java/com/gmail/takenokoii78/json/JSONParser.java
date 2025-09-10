@@ -258,7 +258,7 @@ public class JSONParser {
     private void keyValues(@NotNull JSONObject jsonObject) {
         final String key = stringValue();
         if (!next(COLON)) throw newException("コロンが必要です");
-        jsonObject.setKey(key, value());
+        jsonObject.set(key, value());
 
         final char commaOrBrace = next(true);
 
