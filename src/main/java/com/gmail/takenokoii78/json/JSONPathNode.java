@@ -27,13 +27,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
     public abstract @NotNull String toString();
 
     public static final class ObjectKeyNode extends JSONPathNode<JSONObject, String> {
-        public ObjectKeyNode(@NotNull String name, @Nullable JSONPathNode<?, ?> child) {
+        ObjectKeyNode(@NotNull String name, @Nullable JSONPathNode<?, ?> child) {
             super(name, child);
         }
 
         @Override
         public @Nullable JSONValue<?> get(@NotNull JSONObject structure) {
-            if (!structure.hasKey(parameter)) return null;
+            if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeOf(parameter));
         }
 
@@ -54,7 +54,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
     }
 
     public static final class ArrayIndexNode extends JSONPathNode<JSONArray, Integer> {
-        public ArrayIndexNode(@NotNull Integer index, @Nullable JSONPathNode<?, ?> child) {
+        ArrayIndexNode(@NotNull Integer index, @Nullable JSONPathNode<?, ?> child) {
             super(index, child);
         }
 
@@ -81,13 +81,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
     }
 
     public static final class ObjectKeyCheckerNode extends JSONPathNode<JSONObject, Pair<String, JSONObject>> {
-        public ObjectKeyCheckerNode(@NotNull String name, @NotNull JSONObject jsonObject, @Nullable JSONPathNode<?, ?> child) {
+        ObjectKeyCheckerNode(@NotNull String name, @NotNull JSONObject jsonObject, @Nullable JSONPathNode<?, ?> child) {
             super(new Pair<>(name, jsonObject), child);
         }
 
         @Override
         public @Nullable JSONObject get(@NotNull JSONObject structure) {
-            if (!structure.hasKey(parameter.a())) return null;
+            if (!structure.has(parameter.a())) return null;
             else {
                 final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
 
@@ -104,7 +104,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
 
         @Override
         public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
-            if (!structure.hasKey(parameter.a())) return null;
+            if (!structure.has(parameter.a())) return null;
             else {
                 final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
 
@@ -132,7 +132,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
     }
 
     public static final class ArrayIndexFinderNode extends JSONPathNode<JSONArray, JSONObject> {
-        public ArrayIndexFinderNode(@NotNull JSONObject parameter, @Nullable JSONPathNode<?, ?> child) {
+        ArrayIndexFinderNode(@NotNull JSONObject parameter, @Nullable JSONPathNode<?, ?> child) {
             super(parameter, child);
         }
 

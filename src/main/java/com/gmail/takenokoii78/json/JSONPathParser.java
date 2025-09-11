@@ -158,7 +158,7 @@ public class JSONPathParser {
             }
             else if (QUOTES.contains(c)) {
                 if (!sb.isEmpty()) {
-                    throw newException("TODO");
+                    throw newException("クォーテーションはキーの途中に含めることができない文字です");
                 }
 
                 sb.append(string());
@@ -251,7 +251,7 @@ public class JSONPathParser {
                 list.add(arrayIndex());
             }
             else {
-                throw newException("TODO");
+                throw newException("不明な文字です: " + peek(false));
             }
         }
 
@@ -264,10 +264,9 @@ public class JSONPathParser {
                     node = new JSONPathNode.ObjectKeyNode(strings[0], node);
                 }
                 else if (strings.length == 2) {
-                    System.out.println(strings[1]);
                     node = new JSONPathNode.ObjectKeyCheckerNode(strings[0], JSONParser.object(strings[1]), node);
                 }
-                else throw newException("TODO");
+                else throw newException("NEVER HAPPENS");
             }
             else if (value instanceof String string) {
                 if (string.matches("^[+-]?[1-9]*\\d+|0$")) {
@@ -277,11 +276,11 @@ public class JSONPathParser {
                     node = new JSONPathNode.ArrayIndexFinderNode(JSONParser.object(string), node);
                 }
             }
-            else throw newException("TODO");
+            else throw newException("NEVER HAPPENS");
         }
 
         if (node == null) {
-            throw newException("TODO");
+            throw newException("空のパスは解析できません");
         }
 
         return node;

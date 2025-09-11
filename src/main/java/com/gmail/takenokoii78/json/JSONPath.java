@@ -6,8 +6,6 @@ import com.gmail.takenokoii78.json.values.JSONStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -95,12 +93,12 @@ public final class JSONPath {
         return accessNextValue(node, p, clazz, function);
     }
 
-    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathAccess<?, ?>, T> function) {
+    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function) {
         return accessStructParam(jsonObject, JSONStructure.class, (a, b) -> {
-            final JSONPathAccess<?, ?> access = switch (a) {
-                case JSONObject object -> new JSONPathAccess.JSONObjectPathAccess(object, (String) b);
-                case JSONArray array -> new JSONPathAccess.JSONArrayPathAccess(array, (Integer) b);
-                default -> throw new IllegalArgumentException("TODO");
+            final JSONPathReference<?, ?> access = switch (a) {
+                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) b);
+                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) b);
+                default -> throw new IllegalArgumentException("NEVER HAPPENS");
             };
 
             return function.apply(access);
@@ -121,13 +119,13 @@ public final class JSONPath {
 
     public @NotNull JSONPath slice(int begin, int end) {
         if (begin < 0 || end > length() || begin > end) {
-            throw new IllegalArgumentException("TODO");
+            throw new IllegalArgumentException("インデックスが範囲外です");
         }
 
         JSONPathNode<?, ?> beginNode = root;
         for (int i = 0; i < begin; i++) {
             if (beginNode == null) {
-                throw new IllegalStateException("TODO");
+                throw new IllegalStateException("NEVER HAPPENS");
             }
 
             beginNode = beginNode.child;
@@ -136,7 +134,7 @@ public final class JSONPath {
         JSONPathNode<?, ?> node = beginNode;
         for (int i = begin; i < end; i++) {
             if (node == null) {
-                throw new IllegalStateException("TODO");
+                throw new IllegalStateException("NEVER HAPPENS");
             }
 
             node = node.child;
@@ -169,12 +167,12 @@ public final class JSONPath {
         return JSONPathParser.parse(path);
     }
 
-    public static abstract class JSONPathAccess<S extends JSONStructure, T> {
+    public static abstract class JSONPathReference<S extends JSONStructure, T> {
         protected final S structure;
 
         protected final T parameter;
 
-        protected JSONPathAccess(@NotNull S structure, @NotNull T parameter) {
+        protected JSONPathReference(@NotNull S structure, @NotNull T parameter) {
             this.structure = structure;
             this.parameter = parameter;
         }
@@ -189,14 +187,14 @@ public final class JSONPath {
 
         public abstract void delete();
 
-        private static final class JSONObjectPathAccess extends JSONPathAccess<JSONObject, String> {
-            private JSONObjectPathAccess(@NotNull JSONObject structure, @NotNull String parameter) {
+        private static final class JSONObjectPathReference extends JSONPathReference<JSONObject, String> {
+            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter) {
                 super(structure, parameter);
             }
 
             @Override
             public boolean has() {
-                return structure.hasKey(parameter);
+                return structure.has(parameter);
             }
 
             @NotNull
@@ -221,8 +219,8 @@ public final class JSONPath {
             }
         }
 
-        private static final class JSONArrayPathAccess extends JSONPathAccess<JSONArray, Integer> {
-            private JSONArrayPathAccess(@NotNull JSONArray structure, @NotNull Integer parameter) {
+        private static final class JSONArrayPathReference extends JSONPathReference<JSONArray, Integer> {
+            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter) {
                 super(structure, parameter);
             }
 

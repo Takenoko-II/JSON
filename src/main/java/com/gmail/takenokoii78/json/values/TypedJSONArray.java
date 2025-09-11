@@ -21,12 +21,14 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         this.type = type;
     }
 
+    @Override
     public boolean has(int index) {
         if (index >= 0) return index < value.size();
         else if (value.size() + index >= 0) return has(value.size() + index);
         else return false;
     }
 
+    @Override
     public boolean isEmpty() {
         return value.isEmpty();
     }
@@ -75,6 +77,7 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         else this.value.set(this.value.size() + index, value);
     }
 
+    @Override
     public void delete(int index) {
         if (has(index)) {
             if (index >= 0) value.remove(index);
@@ -82,10 +85,12 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         }
     }
 
+    @Override
     public void clear() {
         value.clear();
     }
 
+    @Override
     public int length() {
         return value.size();
     }

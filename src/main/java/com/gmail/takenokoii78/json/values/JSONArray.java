@@ -16,12 +16,14 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         super(new ArrayList<>(list));
     }
 
+    @Override
     public boolean has(int index) {
         if (index >= 0) return index < value.size();
         else if (value.size() + index >= 0) return has(value.size() + index);
         else return false;
     }
 
+    @Override
     public boolean isEmpty() {
         return value.isEmpty();
     }
@@ -70,6 +72,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         else this.value.set(this.value.size() + index, JSONValueType.of(value).cast(value));
     }
 
+    @Override
     public void delete(int index) {
         if (has(index)) {
             if (index >= 0) value.remove(index);
@@ -77,10 +80,12 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         }
     }
 
+    @Override
     public void clear() {
         value.clear();
     }
 
+    @Override
     public int length() {
         return value.size();
     }
@@ -96,7 +101,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         return list.iterator();
     }
 
-    public List<Object> asList() {
+    public @NotNull List<Object> asList() {
         final List<Object> list = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {

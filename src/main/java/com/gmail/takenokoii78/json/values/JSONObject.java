@@ -16,7 +16,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         super(map);
     }
 
-    public boolean hasKey(@NotNull String key) {
+    public boolean has(@NotNull String key) {
         return value.containsKey(key);
     }
 
@@ -25,7 +25,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
     }
 
     public @NotNull JSONValueType<?> getTypeOf(@NotNull String key) {
-        if (!hasKey(key)) {
+        if (!has(key)) {
             throw new IllegalArgumentException("キー '" + key + "' は存在しません");
         }
 
@@ -33,7 +33,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
     }
 
     public @NotNull <T extends JSONValue<?>> T get(@NotNull String key, JSONValueType<T> type) {
-        if (!hasKey(key)) {
+        if (!has(key)) {
             throw new IllegalArgumentException("キー '" + key + "' は存在しません");
         }
 
@@ -49,7 +49,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
     }
 
     public void delete(@NotNull String key) {
-        if (hasKey(key)) value.remove(key);
+        if (has(key)) value.remove(key);
     }
 
     public void clear() {
@@ -98,7 +98,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
 
     public boolean isSuperOf(@NotNull JSONObject other) {
         for (final String key : other.keys()) {
-            if (hasKey(key)) {
+            if (has(key)) {
                 final JSONValue<?> conditionValue = other.get(key, other.getTypeOf(key));
 
                 switch (conditionValue) {
