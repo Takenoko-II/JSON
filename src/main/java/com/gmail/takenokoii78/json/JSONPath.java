@@ -6,6 +6,8 @@ import com.gmail.takenokoii78.json.values.JSONStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -103,6 +105,64 @@ public final class JSONPath {
 
             return function.apply(access);
         });
+    }
+
+    public int length() {
+        JSONPathNode<?, ?> node = root;
+
+        int i = 0;
+        while (node != null) {
+            i++;
+            node = node.child;
+        }
+
+        return i;
+    }
+
+    public @NotNull JSONPath slice(int begin, int end) {
+        if (begin < 0 || end > length() || begin > end) {
+            throw new IllegalArgumentException("TODO");
+        }
+
+        JSONPathNode<?, ?> beginNode = root;
+        for (int i = 0; i < begin; i++) {
+            if (beginNode == null) {
+                throw new IllegalStateException("TODO");
+            }
+
+            beginNode = beginNode.child;
+        }
+
+        JSONPathNode<?, ?> node = beginNode;
+        for (int i = begin; i < end; i++) {
+            if (node == null) {
+                throw new IllegalStateException("TODO");
+            }
+
+            node = node.child;
+        }
+
+        node.child = null;
+
+        return new JSONPath(beginNode);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("JSONPath { ");
+        JSONPathNode<?, ?> node = root;
+
+        while (node != null) {
+            sb.append(node);
+            node = node.child;
+
+            if (node != null) {
+                sb.append(".");
+            }
+        }
+
+        return sb.append(" }").toString();
     }
 
     public static @NotNull JSONPath of(@NotNull String path) {

@@ -1,8 +1,9 @@
 package com.gmail.takenokoii78;
 
-import com.gmail.takenokoii78.json.JSONParser;
-import com.gmail.takenokoii78.json.JSONPath;
-import com.gmail.takenokoii78.json.values.JSONNull;
+import com.gmail.takenokoii78.json.*;
+import com.gmail.takenokoii78.json.values.JSONArray;
+import com.gmail.takenokoii78.json.values.JSONIterable;
+import com.gmail.takenokoii78.json.values.JSONString;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,7 +17,7 @@ public class Main {
             }
             """);
 
-        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 2 }]}.bar[2].c");
+        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 2 }]}.bar[-1].c");
 
         System.out.println(object);
         System.out.println();
@@ -28,7 +29,8 @@ public class Main {
         System.out.println(v);
         System.out.println(object);
 
-        // 負の添え字 -> JSONArray側の問題
+        JSONIterable<JSONString> ss = new JSONArray().typed(JSONValueTypes.STRING);
+
         // MojangsonParser似のやつ -> 最後にやる
     }
 }

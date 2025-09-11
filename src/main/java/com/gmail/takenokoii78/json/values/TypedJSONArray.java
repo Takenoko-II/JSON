@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> implements JSONIterable<T>, JSONStructure {
+public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> implements JSONIterable<T> {
     private final JSONValueType<T> type;
 
     public TypedJSONArray(@NotNull JSONValueType<T> type) {
@@ -22,7 +22,9 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
     }
 
     public boolean has(int index) {
-        return index < value.size();
+        if (index >= 0) return index < value.size();
+        else if (value.size() + index >= 0) return has(value.size() + index);
+        else return false;
     }
 
     public boolean isEmpty() {
@@ -34,7 +36,8 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        return JSONValueType.of(value.get(index)).equals(type);
+        if (index >= 0) return JSONValueType.of(value.get(index)).equals(type);
+        else return JSONValueType.of(value.get(value.size() + index)).equals(type);
     }
 
     public T get(int index) {
@@ -46,15 +49,17 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
             throw new IllegalArgumentException("インデックス '" + index + "' は期待される型の値と紐づけられていません");
         }
 
-        return value.get(index);
+        if (index >= 0) return value.get(index);
+        else return value.get(value.size() + index);
     }
 
     public void add(int index, T value) {
-        if (index < 0 || index > this.value.size()) {
+        if (index > this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        this.value.add(index, value);
+        if (index >= 0) this.value.add(index, value);
+        else this.value.add(this.value.size() + index, value);
     }
 
     public void add(T value) {
@@ -62,15 +67,19 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
     }
 
     public void set(int index, T value) {
-        if (index < 0 || index >= this.value.size()) {
+        if (index >= this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        this.value.set(index, value);
+        if (index >= 0) this.value.set(index, value);
+        else this.value.set(this.value.size() + index, value);
     }
 
     public void delete(int index) {
-        if (has(index)) value.remove(index);
+        if (has(index)) {
+            if (index >= 0) value.remove(index);
+            else value.remove(this.value.size() + index);
+        }
     }
 
     public void clear() {

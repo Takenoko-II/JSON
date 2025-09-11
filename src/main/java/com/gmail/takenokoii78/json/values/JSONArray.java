@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JSONIterable<JSONValue<?>>, JSONStructure {
+public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JSONIterable<JSONValue<?>> {
     public JSONArray() {
         super(new ArrayList<>());
     }
@@ -17,7 +17,9 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
     }
 
     public boolean has(int index) {
-        return index < value.size();
+        if (index >= 0) return index < value.size();
+        else if (value.size() + index >= 0) return has(value.size() + index);
+        else return false;
     }
 
     public boolean isEmpty() {
@@ -29,7 +31,8 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        return JSONValueType.of(value.get(index));
+        if (index >= 0) return JSONValueType.of(value.get(index));
+        else return JSONValueType.of(value.get(value.size() + index));
     }
 
     public <T extends JSONValue<?>> T get(int index, @NotNull JSONValueType<T> type) {
@@ -41,15 +44,17 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
             throw new IllegalArgumentException("インデックス '" + index + "' は期待される型の値と紐づけられていません");
         }
 
-        return type.cast(value.get(index));
+        if (index >= 0) return type.cast(value.get(index));
+        else return type.cast(value.get(value.size() + index));
     }
 
     public void add(int index, Object value) {
-        if (index < 0 || index > this.value.size()) {
+        if (index > this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        this.value.add(index, JSONValueType.of(value).cast(value));
+        if (index >= 0) this.value.add(index, JSONValueType.of(value).cast(value));
+        else this.value.add(this.value.size() + index, JSONValueType.of(value).cast(value));
     }
 
     public void add(Object value) {
@@ -57,15 +62,19 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
     }
 
     public void set(int index, Object value) {
-        if (index < 0 || index >= this.value.size()) {
+        if (index >= this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        this.value.set(index, JSONValueType.of(value).cast(value));
+        if (index >= 0) this.value.set(index, JSONValueType.of(value).cast(value));
+        else this.value.set(this.value.size() + index, JSONValueType.of(value).cast(value));
     }
 
     public void delete(int index) {
-        if (has(index)) value.remove(index);
+        if (has(index)) {
+            if (index >= 0) value.remove(index);
+            else value.remove(value.size() + index);
+        }
     }
 
     public void clear() {

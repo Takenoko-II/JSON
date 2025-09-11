@@ -13,7 +13,7 @@ void main() {
         }
         """);
 
-    final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 1 }]}.bar[2].c");
+    final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 1 }]}.bar[-1].c");
 
     System.out.println("1. " + object);
 

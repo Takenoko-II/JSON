@@ -1,6 +1,5 @@
 package com.gmail.takenokoii78.json;
 
-import com.gmail.takenokoii78.json.generic.Pair;
 import com.gmail.takenokoii78.json.values.JSONArray;
 import com.gmail.takenokoii78.json.values.JSONObject;
 import com.gmail.takenokoii78.json.values.JSONStructure;
@@ -12,7 +11,7 @@ import java.util.function.BiFunction;
 public abstract class JSONPathNode<S extends JSONStructure, T> {
     protected final T parameter;
 
-    protected final JSONPathNode<?, ?> child;
+    protected JSONPathNode<?, ?> child;
 
     protected JSONPathNode(@NotNull T parameter, @Nullable JSONPathNode<?, ?> child) {
         this.parameter = parameter;
@@ -22,6 +21,8 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
     public abstract @Nullable JSONValue<?> get(@NotNull S structure);
 
     public abstract <U> @Nullable U access(@NotNull S structure, @NotNull BiFunction<S, Object, U> function);
+
+    public abstract @NotNull JSONPathNode<S, T> copy();
 
     public abstract @NotNull String toString();
 
@@ -42,8 +43,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
+        public @NotNull JSONPathNode<JSONObject, String> copy() {
+            return new ObjectKeyNode(parameter, child == null ? null : child.copy());
+        }
+
+        @Override
         public @NotNull String toString() {
-            return "ObjectKey<" + parameter + ">";
+            return "key<" + parameter + ">";
         }
     }
 
@@ -64,8 +70,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
+        public @NotNull JSONPathNode<JSONArray, Integer> copy() {
+            return new ArrayIndexNode(parameter, child == null ? null : child.copy());
+        }
+
+        @Override
         public @NotNull String toString() {
-            return "ArrayIndex<" + parameter + ">";
+            return "index<" + parameter + ">";
         }
     }
 
@@ -110,8 +121,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
+        public @NotNull JSONPathNode<JSONObject, Pair<String, JSONObject>> copy() {
+            return new ObjectKeyCheckerNode(parameter.a(), parameter.b(), child == null ? null : child.copy());
+        }
+
+        @Override
         public @NotNull String toString() {
-            return "ObjectKeyChecker<" + parameter.a() + ", " + parameter.b() + ">";
+            return "key_checker<" + parameter.a() + ", " + parameter.b() + ">";
         }
     }
 
@@ -163,10 +179,17 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
             return null;
         }
 
+        @Override
+        public @NotNull JSONPathNode<JSONArray, JSONObject> copy() {
+            return new ArrayIndexFinderNode(parameter, child == null ? null : child.copy());
+        }
+
         @NotNull
         @Override
         public String toString() {
-            return "ArrayIndexFinder<" + parameter + ">";
+            return "index_finder<" + parameter + ">";
         }
     }
+
+    private record Pair<A, B>(A a, B b) {}
 }
