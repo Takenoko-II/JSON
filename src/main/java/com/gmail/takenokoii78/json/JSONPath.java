@@ -6,6 +6,8 @@ import com.gmail.takenokoii78.json.values.JSONStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -46,63 +48,86 @@ public final class JSONPath {
         }
     }
 
-    private <T, U> @Nullable U accessNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p, @NotNull Class<T> clazz, BiFunction<T, Object, U> function) {
+    private <U> @Nullable U useNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p, BiFunction<JSONStructure, Object, U> function) {
         switch (node) {
             case JSONPathNode.ObjectKeyNode objectKeyNode -> {
                 if (!(p instanceof JSONObject object)) {
                     throw new IllegalArgumentException(String.valueOf(p));
                 }
-                return objectKeyNode.access(object, (a, b) -> function.apply(clazz.cast(a), b));
+                return objectKeyNode.access(object, function::apply);
             }
             case JSONPathNode.ArrayIndexNode arrayIndexNode -> {
                 if (!(p instanceof JSONArray array)) {
                     throw new IllegalArgumentException();
                 }
-                return arrayIndexNode.access(array, (a, b) -> function.apply(clazz.cast(a), b));
+                return arrayIndexNode.access(array, function::apply);
             }
             case JSONPathNode.ObjectKeyCheckerNode objectKeyCheckerNode -> {
                 if (!(p instanceof JSONObject object)) {
                     throw new IllegalArgumentException();
                 }
-                return objectKeyCheckerNode.access(object, (a, b) -> function.apply(clazz.cast(a), b));
+                return objectKeyCheckerNode.access(object, function::apply);
             }
             case JSONPathNode.ArrayIndexFinderNode arrayIndexFinderNode -> {
                 if (!(p instanceof JSONArray array)) {
                     throw new IllegalArgumentException();
                 }
-                return arrayIndexFinderNode.access(array, (a, b) -> function.apply(clazz.cast(a), b));
+                return arrayIndexFinderNode.access(array, function::apply);
             }
             default -> throw new IllegalArgumentException();
         }
     }
 
-    private <T, U> @Nullable U accessStructParam(@NotNull JSONObject jsonObject, @NotNull Class<T> clazz, BiFunction<T, Object, U> function) {
+    private <U> @Nullable U onLastNode(@NotNull JSONObject jsonObject, @NotNull TriFunction<JSONStructure, Object, Runnable, U> function) {
         JSONPathNode<?, ?> node = root;
         JSONValue<?> p = jsonObject;
 
-        while (node.child != null) {
-            p = getNextValue(node, p);
+        final List<Runnable> list = new ArrayList<>();
 
-            if (p == null) {
-                throw new IllegalArgumentException(node.parameter + " p == null");
+        while (node.child != null) {
+            var q = getNextValue(node, p);
+
+            if (q == null) {
+                if (node instanceof JSONPathNode.ObjectKeyNode n) {
+                    q = new JSONObject();
+                    JSONObject t = (JSONObject) p;
+                    JSONObject s = (JSONObject) q;
+                    list.add(() -> t.set(n.parameter, s));
+                }
+                else {
+                    throw new IllegalArgumentException(node.parameter + " p == null");
+                }
             }
 
+            p = q;
             node = node.child;
         }
 
-        return accessNextValue(node, p, clazz, function);
+        return useNextValue(node, p, (a, b) -> {
+            final boolean[] created = {false};
+            return function.apply(a, b, () -> {
+                if (!created[0]) {
+                    list.forEach(Runnable::run);
+                    created[0] = true;
+                }
+            });
+        });
     }
 
     public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function) {
-        return accessStructParam(jsonObject, JSONStructure.class, (a, b) -> {
-            final JSONPathReference<?, ?> access = switch (a) {
-                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) b);
-                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) b);
+        return onLastNode(jsonObject, (lastStructure, nodeParameter, creator) -> {
+            final JSONPathReference<?, ?> reference = switch (lastStructure) {
+                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) nodeParameter, creator);
+                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) nodeParameter, creator);
                 default -> throw new IllegalArgumentException("NEVER HAPPENS");
             };
 
-            return function.apply(access);
+            return function.apply(reference);
         });
+    }
+
+    public @NotNull JSONPathReference<?, ?> refer(@NotNull JSONObject jsonObject) {
+        return access(jsonObject, reference -> reference);
     }
 
     public int length() {
@@ -172,9 +197,12 @@ public final class JSONPath {
 
         protected final T parameter;
 
-        protected JSONPathReference(@NotNull S structure, @NotNull T parameter) {
+        protected final Runnable creator;
+
+        protected JSONPathReference(@NotNull S structure, @NotNull T parameter, @NotNull Runnable creator) {
             this.structure = structure;
             this.parameter = parameter;
+            this.creator = creator;
         }
 
         public abstract boolean has();
@@ -188,8 +216,8 @@ public final class JSONPath {
         public abstract void delete();
 
         private static final class JSONObjectPathReference extends JSONPathReference<JSONObject, String> {
-            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter) {
-                super(structure, parameter);
+            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter, @NotNull Runnable creator) {
+                super(structure, parameter, creator);
             }
 
             @Override
@@ -210,6 +238,7 @@ public final class JSONPath {
 
             @Override
             public void set(@NotNull Object value) {
+                creator.run();
                 structure.set(parameter, value);
             }
 
@@ -220,8 +249,8 @@ public final class JSONPath {
         }
 
         private static final class JSONArrayPathReference extends JSONPathReference<JSONArray, Integer> {
-            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter) {
-                super(structure, parameter);
+            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter, @NotNull Runnable creator) {
+                super(structure, parameter, creator);
             }
 
             @Override
@@ -242,6 +271,7 @@ public final class JSONPath {
 
             @Override
             public void set(@NotNull Object value) {
+                creator.run();
                 structure.set(parameter, value);
             }
 
@@ -250,5 +280,10 @@ public final class JSONPath {
                 structure.delete(parameter);
             }
         }
+    }
+
+    @FunctionalInterface
+    private interface TriFunction<S, T, U, R> {
+        R apply(S s, T t, U u);
     }
 }

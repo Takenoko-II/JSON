@@ -10,26 +10,22 @@ public class Main {
         final var object = JSONParser.object("""
             {
                 "foo": {
-                    "bar": ["a", "b", { "c":2 }]
+                    "bar": ["a", "b", { "c": 2 }]
                 }
             }
             """);
 
-        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 2 }]}.bar[-1].c");
+        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 2 }]}.bar[-1].d");
 
         System.out.println(object);
-        System.out.println();
-        final var v = path.access(object, reference -> {
-            reference.set(10);
-            return reference.get(reference.getType());
-        });
 
-        final JSONPath.JSONPathReference<?, ?> reference = path.access(object, r -> r);
-        reference.get(JSONValueTypes.NUMBER);
+        path.access(object, reference -> {
+            reference.set(10);
+            return null;
+        });
 
         System.out.println(object);
 
         // MojangsonParser似のやつ -> 最後にやる
-        // TODO: Way Creation Option - 該当のパスが存在しなければ自動生成しつつ参照を作成するオプション
     }
 }
