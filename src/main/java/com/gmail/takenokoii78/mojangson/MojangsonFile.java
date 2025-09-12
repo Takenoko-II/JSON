@@ -1,8 +1,8 @@
-package com.gmail.takenokoii78.json;
+package com.gmail.takenokoii78.mojangson;
 
-import com.gmail.takenokoii78.json.values.JSONArray;
-import com.gmail.takenokoii78.json.values.JSONObject;
-import com.gmail.takenokoii78.json.values.JSONStructure;
+import com.gmail.takenokoii78.mojangson.values.MojangsonCompound;
+import com.gmail.takenokoii78.mojangson.values.MojangsonList;
+import com.gmail.takenokoii78.mojangson.values.MojangsonStructure;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -14,10 +14,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.function.Function;
 
-public class JSONFile {
+public class MojangsonFile {
     private final Path path;
 
-    public JSONFile(@NotNull Path path) {
+    public MojangsonFile(@NotNull Path path) {
         this.path = path;
 
         if (!path.toFile().isFile()) {
@@ -25,11 +25,11 @@ public class JSONFile {
         }
     }
 
-    public JSONFile(@NotNull String path) {
+    public MojangsonFile(@NotNull String path) {
         this(Path.of(path));
     }
 
-    public JSONFile(@NotNull File file) {
+    public MojangsonFile(@NotNull File file) {
         this(file.toPath());
     }
 
@@ -96,23 +96,29 @@ public class JSONFile {
         else throw new IllegalStateException("ファイルが存在しません");
     }
 
-    public @NotNull JSONStructure read() throws JSONParseException, IllegalStateException {
-        return JSONParser.structure(readAsString());
+    public @NotNull MojangsonStructure read() throws MojangsonParseException, IllegalStateException {
+        final MojangsonValue<?> value = MojangsonParser.object(readAsString());
+        if (value instanceof MojangsonStructure structure) {
+            return structure;
+        }
+        else {
+            throw new IllegalStateException("非構造体が記述されたファイルはMojangsonファイルとして無効です");
+        }
     }
 
-    public void write(@NotNull JSONStructure structure) throws JSONSerializationException, IllegalStateException {
-        writeAsString(JSONSerializer.serialize(structure));
+    public void write(@NotNull MojangsonStructure structure) throws MojangsonSerializationException, IllegalStateException {
+        writeAsString(MojangsonSerializer.toJson(structure));
     }
 
-    public @NotNull JSONObject readAsObject() throws JSONParseException, IllegalStateException {
-        return JSONParser.object(readAsString());
+    public @NotNull MojangsonCompound readAsCompound() throws MojangsonParseException, IllegalStateException {
+        return MojangsonParser.compound(readAsString());
     }
 
-    public @NotNull JSONArray readAsArray() throws JSONParseException, IllegalStateException {
-        return JSONParser.array(readAsString());
+    public @NotNull MojangsonList readAsList() throws MojangsonParseException, IllegalStateException {
+        return MojangsonParser.list(readAsString());
     }
 
-    public void edit(@NotNull Function<JSONStructure, JSONStructure> function) throws JSONParseException, JSONSerializationException, IllegalStateException {
+    public void edit(@NotNull Function<MojangsonStructure, MojangsonStructure> function) throws MojangsonParseException, MojangsonSerializationException, IllegalStateException {
         write(function.apply(read()));
     }
 }

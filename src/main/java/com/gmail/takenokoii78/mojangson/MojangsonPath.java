@@ -29,7 +29,7 @@ public final class MojangsonPath {
             }
             case MojangsonPathNode.ArrayIndexNode arrayIndexNode -> {
                 if (!(p instanceof MojangsonList array)) {
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException(p.getClass().getName());
                 }
                 return arrayIndexNode.get(array);
             }
@@ -80,9 +80,9 @@ public final class MojangsonPath {
         }
     }
 
-    private <U> @Nullable U onLastNode(@NotNull MojangsonCompound MojangsonCompound, @NotNull TriFunction<MojangsonStructure, Object, Runnable, U> function) {
+    private <U> @Nullable U onLastNode(@NotNull MojangsonCompound compound, @NotNull TriFunction<MojangsonStructure, Object, Runnable, U> function) {
         MojangsonPathNode<?, ?> node = root;
-        MojangsonValue<?> p = MojangsonCompound;
+        MojangsonValue<?> p = compound;
 
         final List<Runnable> list = new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package com.gmail.takenokoii78.mojangson.values;
 
+import com.gmail.takenokoii78.mojangson.MojangsonPath;
 import com.gmail.takenokoii78.mojangson.MojangsonValue;
 import com.gmail.takenokoii78.mojangson.MojangsonValueType;
 import com.gmail.takenokoii78.mojangson.MojangsonValueTypes;
@@ -122,5 +123,9 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
         }
 
         return true;
+    }
+
+    public @NotNull MojangsonPath.MojangsonPathReference<?, ?> getReference(@NotNull MojangsonPath path) {
+        return path.access(this, reference -> reference);
     }
 }
