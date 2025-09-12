@@ -1,32 +1,42 @@
 # JSON
 
-自分用
-<br>途中
+JSONにMCJEのNbtPathみたいな感じでアクセスしたかっただけ
+<br>Mojangsonもあるよ
 
 ```java
-void main() {
-    final var object = JSONParser.object("""
-        {
-            "foo": {
-                "bar": ["a", "b", { "c": 1 }]
+import com.gmail.takenokoii78.json.JSONParser;
+import com.gmail.takenokoii78.json.JSONPath;
+import com.gmail.takenokoii78.json.values.JSONObject;
+
+public final class Main {
+    public static void main(String[] args) {
+        final JSONObject object = JSONParser.object("""
+            {
+                "foo": {
+                    "bar": [
+                        "a",
+                        "b",
+                        { "c": 1 }
+                    ]
+                }
             }
-        }
-        """);
+            """);
 
-    final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 1 }]}.bar[-1].c");
+        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 1 }]}.bar[-1].d");
 
-    System.out.println("1. " + object);
+        System.out.println(object);
 
-    path.access(object, access -> {
-        access.set(5);
-        return null;
-    });
+        path.access(object, reference -> {
+            reference.set(2);
+            return null;
+        });
 
-    System.out.println("2. " + object);
+        System.out.println(object);
+    }
 }
 ```
 
 ```
-> 1. {foo={bar=[a, b, {c=1}]}}
-> 2. {foo={bar=[a, b, {c=5}]}}
+> {foo={bar=[a, b, {c=1}]}}
+> {foo={bar=[a, b, {c=1, d=2}]}}
 ```

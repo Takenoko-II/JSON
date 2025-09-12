@@ -8,14 +8,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class MojangsonLongArray extends MojangsonArray<long[]> implements MojangsonIterable<MojangsonLong> {
+public class MojangsonLongArray extends MojangsonArray<long[], MojangsonLong> {
     public MojangsonLongArray(long[] value) {
         super(value);
     }
 
     @Override
     public @NotNull MojangsonLongArray copy() {
-        return from(toMojangsonList());
+        return from(listView());
     }
 
     @Override
@@ -43,12 +43,8 @@ public class MojangsonLongArray extends MojangsonArray<long[]> implements Mojang
     }
 
     @Override
-    public @NotNull MojangsonList toMojangsonList() {
-        final MojangsonList list = new MojangsonList();
-        for (final long longValue : value) {
-            list.add(longValue);
-        }
-        return toSubList(list, (arr, ind, val) -> {
+    public @NotNull MojangsonList listView() {
+        return getView((arr, ind, val) -> {
             arr[ind] = (long) val;
         });
     }

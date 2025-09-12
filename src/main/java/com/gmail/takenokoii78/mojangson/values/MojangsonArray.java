@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MojangsonArray<T> extends MojangsonPrimitive<T> implements MojangsonStructure {
+public abstract class MojangsonArray<T, U extends MojangsonValue<?>> extends MojangsonPrimitive<T> implements MojangsonIterable<U> {
     protected MojangsonArray(@NotNull T value) {
         super(value);
 
@@ -17,20 +17,18 @@ public abstract class MojangsonArray<T> extends MojangsonPrimitive<T> implements
 
     public abstract @NotNull T toArray();
 
-    protected @NotNull MojangsonList toSubList(MojangsonList origin, TriConsumer<T, Integer, Object> setter) {
-        final T that = value;
+    protected @NotNull MojangsonList getView(@NotNull TriConsumer<T, Integer, Object> setter) {
+        final T array = value;
 
         final List<MojangsonValue<?>> values = new ArrayList<>();
-        for (MojangsonValue<?> mojangsonValue : origin) {
-            values.add(mojangsonValue);
-        }
+        forEach(values::add);
 
         return new MojangsonList(values) {
             @Override
             public void set(int index, Object value1) {
                 super.set(index, value1);
 
-                setter.accept(that,(index >= 0) ? index : super.length() + index, value1);
+                setter.accept(array, (index >= 0) ? index : super.length() + index, value1);
             }
 
             @Override
@@ -55,7 +53,7 @@ public abstract class MojangsonArray<T> extends MojangsonPrimitive<T> implements
         };
     }
 
-    public abstract @NotNull MojangsonList toMojangsonList();
+    public abstract @NotNull MojangsonList listView();
 
     @FunctionalInterface
     public interface TriConsumer<S, T, U> {

@@ -76,7 +76,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
                 final MojangsonList list = get(key, MojangsonValueTypes.LIST);
                 map.put(key, list.toList());
             }
-            else if (value.get(key) instanceof MojangsonArray<?> array) {
+            else if (value.get(key) instanceof MojangsonArray<?, ?> array) {
                 map.put(key, array.toArray());
             }
             else if (value.get(key) instanceof MojangsonPrimitive<?> primitive) {

@@ -111,7 +111,7 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
                 final MojangsonList list = get(i, MojangsonValueTypes.LIST);
                 arrayList.add(list.toList());
             }
-            else if (value.get(i) instanceof MojangsonArray<?> array) {
+            else if (value.get(i) instanceof MojangsonArray<?, ?> array) {
                 arrayList.add(array.toArray());
             }
             else if (value.get(i) instanceof MojangsonPrimitive<?> primitive) {

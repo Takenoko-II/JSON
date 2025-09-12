@@ -60,7 +60,7 @@ public final class MojangsonPath {
             case MojangsonPathNode.ArrayIndexNode arrayIndexNode -> {
                 return switch (p) {
                     case MojangsonList list -> arrayIndexNode.access(list, function::apply);
-                    case MojangsonArray<?> array -> arrayIndexNode.access(array.toMojangsonList(), function::apply);
+                    case MojangsonArray<?, ?> array -> arrayIndexNode.access(array.listView(), function::apply);
                     default -> throw new IllegalArgumentException();
                 };
             }

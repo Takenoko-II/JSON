@@ -8,14 +8,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class MojangsonByteArray extends MojangsonArray<byte[]> implements MojangsonIterable<MojangsonByte> {
+public class MojangsonByteArray extends MojangsonArray<byte[], MojangsonByte> {
     public MojangsonByteArray(byte[] value) {
         super(value);
     }
 
     @Override
     public @NotNull MojangsonByteArray copy() {
-        return from(toMojangsonList());
+        return from(listView());
     }
 
     @Override
@@ -43,12 +43,8 @@ public class MojangsonByteArray extends MojangsonArray<byte[]> implements Mojang
     }
 
     @Override
-    public @NotNull MojangsonList toMojangsonList() {
-        final MojangsonList list = new MojangsonList();
-        for (final byte byteValue : value) {
-            list.add(byteValue);
-        }
-        return toSubList(list, (arr, ind, val) -> {
+    public @NotNull MojangsonList listView() {
+        return getView((arr, ind, val) -> {
             arr[ind] = (byte) val;
         });
     }
