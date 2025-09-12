@@ -1,5 +1,10 @@
 package com.gmail.takenokoii78.json;
 
+import com.gmail.takenokoii78.mojangson.MojangsonParser;
+import com.gmail.takenokoii78.mojangson.MojangsonPath;
+import com.gmail.takenokoii78.mojangson.MojangsonValueTypes;
+import com.gmail.takenokoii78.mojangson.values.MojangsonIntArray;
+
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
@@ -17,6 +22,23 @@ public class Main {
 
         System.out.println(object);
 
-        // MojangsonParser似のやつ -> 最後にやる
+        var o = MojangsonParser.compound("{foo:bar,a:[{b:c,d:e}],arr:[I;0,1,2,3]}");
+        var p = MojangsonPath.of("arr[-1]");
+
+        p.access(o, r -> {
+            r.set(10);
+            return null;
+        });
+
+        final MojangsonIntArray intArray = MojangsonPath.of("arr").access(o, r -> r).get(MojangsonValueTypes.INT_ARRAY);
+        intArray.toMojangsonList().set(2, 6);
+        System.out.println(intArray.toMojangsonList());
+
+        System.out.println(o);
+
+        // TODO: JSONObject -> MojangsonCompound, JSONArray -> MojangsonList
+        // TODO: MojangsonCompound -> JSONObject, MojangsonList -> JSONArray
+        // JSONNumber -> MojangsonInt or MojangsonDouble
+        // MojangsonInt or MojangsonDouble -> JSONNumber
     }
 }

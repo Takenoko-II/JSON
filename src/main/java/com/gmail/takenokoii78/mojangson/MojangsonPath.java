@@ -1,8 +1,9 @@
-package com.gmail.takenokoii78.json;
+package com.gmail.takenokoii78.mojangson;
 
-import com.gmail.takenokoii78.json.values.JSONArray;
-import com.gmail.takenokoii78.json.values.JSONObject;
-import com.gmail.takenokoii78.json.values.JSONStructure;
+import com.gmail.takenokoii78.mojangson.values.MojangsonArray;
+import com.gmail.takenokoii78.mojangson.values.MojangsonCompound;
+import com.gmail.takenokoii78.mojangson.values.MojangsonList;
+import com.gmail.takenokoii78.mojangson.values.MojangsonStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,35 +12,35 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public final class JSONPath {
-    private final JSONPathNode<?, ?> root;
+public final class MojangsonPath {
+    private final MojangsonPathNode<?, ?> root;
 
-    JSONPath(@NotNull JSONPathNode<?, ?> root) {
+    MojangsonPath(@NotNull MojangsonPathNode<?, ?> root) {
         this.root = root;
     }
 
-    private @Nullable JSONValue<?> getNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p) {
+    private @Nullable MojangsonValue<?> getNextValue(@NotNull MojangsonPathNode<?, ?> node, @Nullable MojangsonValue<?> p) {
         switch (node) {
-            case JSONPathNode.ObjectKeyNode objectKeyNode -> {
-                if (!(p instanceof JSONObject object)) {
+            case MojangsonPathNode.ObjectKeyNode objectKeyNode -> {
+                if (!(p instanceof MojangsonCompound object)) {
                     throw new IllegalArgumentException(String.valueOf(p));
                 }
                 return objectKeyNode.get(object);
             }
-            case JSONPathNode.ArrayIndexNode arrayIndexNode -> {
-                if (!(p instanceof JSONArray array)) {
+            case MojangsonPathNode.ArrayIndexNode arrayIndexNode -> {
+                if (!(p instanceof MojangsonList array)) {
                     throw new IllegalArgumentException();
                 }
                 return arrayIndexNode.get(array);
             }
-            case JSONPathNode.ObjectKeyCheckerNode objectKeyCheckerNode -> {
-                if (!(p instanceof JSONObject object)) {
+            case MojangsonPathNode.ObjectKeyCheckerNode objectKeyCheckerNode -> {
+                if (!(p instanceof MojangsonCompound object)) {
                     throw new IllegalArgumentException();
                 }
                 return objectKeyCheckerNode.get(object);
             }
-            case JSONPathNode.ArrayIndexFinderNode arrayIndexFinderNode -> {
-                if (!(p instanceof JSONArray array)) {
+            case MojangsonPathNode.ArrayIndexFinderNode arrayIndexFinderNode -> {
+                if (!(p instanceof MojangsonList array)) {
                     throw new IllegalArgumentException();
                 }
                 return arrayIndexFinderNode.get(array);
@@ -48,28 +49,29 @@ public final class JSONPath {
         }
     }
 
-    private <U> @Nullable U useNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p, BiFunction<JSONStructure, Object, U> function) {
+    private <U> @Nullable U useNextValue(@NotNull MojangsonPathNode<?, ?> node, @Nullable MojangsonValue<?> p, BiFunction<MojangsonStructure, Object, U> function) {
         switch (node) {
-            case JSONPathNode.ObjectKeyNode objectKeyNode -> {
-                if (!(p instanceof JSONObject object)) {
+            case MojangsonPathNode.ObjectKeyNode objectKeyNode -> {
+                if (!(p instanceof MojangsonCompound object)) {
                     throw new IllegalArgumentException(String.valueOf(p));
                 }
                 return objectKeyNode.access(object, function::apply);
             }
-            case JSONPathNode.ArrayIndexNode arrayIndexNode -> {
-                if (!(p instanceof JSONArray array)) {
-                    throw new IllegalArgumentException();
-                }
-                return arrayIndexNode.access(array, function::apply);
+            case MojangsonPathNode.ArrayIndexNode arrayIndexNode -> {
+                return switch (p) {
+                    case MojangsonList list -> arrayIndexNode.access(list, function::apply);
+                    case MojangsonArray<?> array -> arrayIndexNode.access(array.toMojangsonList(), function::apply);
+                    default -> throw new IllegalArgumentException();
+                };
             }
-            case JSONPathNode.ObjectKeyCheckerNode objectKeyCheckerNode -> {
-                if (!(p instanceof JSONObject object)) {
+            case MojangsonPathNode.ObjectKeyCheckerNode objectKeyCheckerNode -> {
+                if (!(p instanceof MojangsonCompound object)) {
                     throw new IllegalArgumentException();
                 }
                 return objectKeyCheckerNode.access(object, function::apply);
             }
-            case JSONPathNode.ArrayIndexFinderNode arrayIndexFinderNode -> {
-                if (!(p instanceof JSONArray array)) {
+            case MojangsonPathNode.ArrayIndexFinderNode arrayIndexFinderNode -> {
+                if (!(p instanceof MojangsonList array)) {
                     throw new IllegalArgumentException();
                 }
                 return arrayIndexFinderNode.access(array, function::apply);
@@ -78,9 +80,9 @@ public final class JSONPath {
         }
     }
 
-    private <U> @Nullable U onLastNode(@NotNull JSONObject jsonObject, @NotNull TriFunction<JSONStructure, Object, Runnable, U> function) {
-        JSONPathNode<?, ?> node = root;
-        JSONValue<?> p = jsonObject;
+    private <U> @Nullable U onLastNode(@NotNull MojangsonCompound MojangsonCompound, @NotNull TriFunction<MojangsonStructure, Object, Runnable, U> function) {
+        MojangsonPathNode<?, ?> node = root;
+        MojangsonValue<?> p = MojangsonCompound;
 
         final List<Runnable> list = new ArrayList<>();
 
@@ -88,10 +90,10 @@ public final class JSONPath {
             var q = getNextValue(node, p);
 
             if (q == null) {
-                if (node instanceof JSONPathNode.ObjectKeyNode n) {
-                    q = new JSONObject();
-                    JSONObject t = (JSONObject) p;
-                    JSONObject s = (JSONObject) q;
+                if (node instanceof MojangsonPathNode.ObjectKeyNode n) {
+                    q = new MojangsonCompound();
+                    MojangsonCompound t = (MojangsonCompound) p;
+                    MojangsonCompound s = (MojangsonCompound) q;
                     list.add(() -> t.set(n.parameter, s));
                 }
                 else {
@@ -114,11 +116,11 @@ public final class JSONPath {
         });
     }
 
-    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function) {
-        return onLastNode(jsonObject, (lastStructure, nodeParameter, creator) -> {
-            final JSONPathReference<?, ?> reference = switch (lastStructure) {
-                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) nodeParameter, creator);
-                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) nodeParameter, creator);
+    public <T> T access(@NotNull MojangsonCompound MojangsonCompound, @NotNull Function<MojangsonPathReference<?, ?>, T> function) {
+        return onLastNode(MojangsonCompound, (lastStructure, nodeParameter, creator) -> {
+            final MojangsonPathReference<?, ?> reference = switch (lastStructure) {
+                case MojangsonCompound object -> new MojangsonPathReference.MojangsonCompoundPathReference(object, (String) nodeParameter, creator);
+                case MojangsonList array -> new MojangsonPathReference.MojangsonListPathReference(array, (Integer) nodeParameter, creator);
                 default -> throw new IllegalArgumentException("NEVER HAPPENS");
             };
 
@@ -127,7 +129,7 @@ public final class JSONPath {
     }
 
     public int length() {
-        JSONPathNode<?, ?> node = root;
+        MojangsonPathNode<?, ?> node = root;
 
         int i = 0;
         while (node != null) {
@@ -138,12 +140,12 @@ public final class JSONPath {
         return i;
     }
 
-    public @NotNull JSONPath slice(int begin, int end) {
+    public @NotNull MojangsonPath slice(int begin, int end) {
         if (begin < 0 || end > length() || begin > end) {
             throw new IllegalArgumentException("インデックスが範囲外です");
         }
 
-        JSONPathNode<?, ?> beginNode = root;
+        MojangsonPathNode<?, ?> beginNode = root;
         for (int i = 0; i < begin; i++) {
             if (beginNode == null) {
                 throw new IllegalStateException("NEVER HAPPENS");
@@ -152,7 +154,7 @@ public final class JSONPath {
             beginNode = beginNode.child;
         }
 
-        JSONPathNode<?, ?> node = beginNode;
+        MojangsonPathNode<?, ?> node = beginNode;
         for (int i = begin; i < end; i++) {
             if (node == null) {
                 throw new IllegalStateException("NEVER HAPPENS");
@@ -163,14 +165,14 @@ public final class JSONPath {
 
         node.child = null;
 
-        return new JSONPath(beginNode);
+        return new MojangsonPath(beginNode);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("JSONPath { ");
-        JSONPathNode<?, ?> node = root;
+        sb.append("MojangsonPath { ");
+        MojangsonPathNode<?, ?> node = root;
 
         while (node != null) {
             sb.append(node);
@@ -184,18 +186,18 @@ public final class JSONPath {
         return sb.append(" }").toString();
     }
 
-    public static @NotNull JSONPath of(@NotNull String path) {
-        return JSONPathParser.parse(path);
+    public static @NotNull MojangsonPath of(@NotNull String path) {
+        return MojangsonPathParser.parse(path);
     }
 
-    public static abstract class JSONPathReference<S extends JSONStructure, T> {
+    public static abstract class MojangsonPathReference<S extends MojangsonStructure, T> {
         protected final S structure;
 
         protected final T parameter;
 
         protected final Runnable creator;
 
-        protected JSONPathReference(@NotNull S structure, @NotNull T parameter, @NotNull Runnable creator) {
+        protected MojangsonPathReference(@NotNull S structure, @NotNull T parameter, @NotNull Runnable creator) {
             this.structure = structure;
             this.parameter = parameter;
             this.creator = creator;
@@ -203,16 +205,16 @@ public final class JSONPath {
 
         public abstract boolean has();
 
-        public abstract @NotNull JSONValueType<?> getType();
+        public abstract @NotNull MojangsonValueType<?> getType();
 
-        public abstract <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type);
+        public abstract <U extends MojangsonValue<?>> @NotNull U get(@NotNull MojangsonValueType<U> type);
 
         public abstract void set(@NotNull Object value);
 
         public abstract void delete();
 
-        private static final class JSONObjectPathReference extends JSONPathReference<JSONObject, String> {
-            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter, @NotNull Runnable creator) {
+        private static final class MojangsonCompoundPathReference extends MojangsonPathReference<MojangsonCompound, String> {
+            private MojangsonCompoundPathReference(@NotNull MojangsonCompound structure, @NotNull String parameter, @NotNull Runnable creator) {
                 super(structure, parameter, creator);
             }
 
@@ -223,12 +225,12 @@ public final class JSONPath {
 
             @NotNull
             @Override
-            public JSONValueType<?> getType() {
+            public MojangsonValueType<?> getType() {
                 return structure.getTypeOf(parameter);
             }
 
             @Override
-            public <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type) {
+            public <U extends MojangsonValue<?>> @NotNull U get(@NotNull MojangsonValueType<U> type) {
                 return structure.get(parameter, type);
             }
 
@@ -244,8 +246,8 @@ public final class JSONPath {
             }
         }
 
-        private static final class JSONArrayPathReference extends JSONPathReference<JSONArray, Integer> {
-            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter, @NotNull Runnable creator) {
+        private static final class MojangsonListPathReference extends MojangsonPathReference<MojangsonList, Integer> {
+            private MojangsonListPathReference(@NotNull MojangsonList structure, @NotNull Integer parameter, @NotNull Runnable creator) {
                 super(structure, parameter, creator);
             }
 
@@ -256,12 +258,12 @@ public final class JSONPath {
 
             @NotNull
             @Override
-            public JSONValueType<?> getType() {
+            public MojangsonValueType<?> getType() {
                 return structure.getTypeAt(parameter);
             }
 
             @Override
-            public <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type) {
+            public <U extends MojangsonValue<?>> @NotNull U get(@NotNull MojangsonValueType<U> type) {
                 return structure.get(parameter, type);
             }
 

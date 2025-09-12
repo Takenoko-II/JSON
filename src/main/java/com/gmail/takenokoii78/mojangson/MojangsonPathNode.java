@@ -1,49 +1,49 @@
-package com.gmail.takenokoii78.json;
+package com.gmail.takenokoii78.mojangson;
 
-import com.gmail.takenokoii78.json.values.JSONArray;
-import com.gmail.takenokoii78.json.values.JSONObject;
-import com.gmail.takenokoii78.json.values.JSONStructure;
+import com.gmail.takenokoii78.mojangson.values.MojangsonCompound;
+import com.gmail.takenokoii78.mojangson.values.MojangsonList;
+import com.gmail.takenokoii78.mojangson.values.MojangsonStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
-public abstract class JSONPathNode<S extends JSONStructure, T> {
+public abstract class MojangsonPathNode<S extends MojangsonStructure, T> {
     protected final T parameter;
 
-    protected JSONPathNode<?, ?> child;
+    protected MojangsonPathNode<?, ?> child;
 
-    protected JSONPathNode(@NotNull T parameter, @Nullable JSONPathNode<?, ?> child) {
+    protected MojangsonPathNode(@NotNull T parameter, @Nullable MojangsonPathNode<?, ?> child) {
         this.parameter = parameter;
         this.child = child;
     }
 
-    public abstract @Nullable JSONValue<?> get(@NotNull S structure);
+    public abstract @Nullable MojangsonValue<?> get(@NotNull S structure);
 
     public abstract <U> @Nullable U access(@NotNull S structure, @NotNull BiFunction<S, Object, U> function);
 
-    public abstract @NotNull JSONPathNode<S, T> copy();
+    public abstract @NotNull MojangsonPathNode<S, T> copy();
 
     public abstract @NotNull String toString();
 
-    public static final class ObjectKeyNode extends JSONPathNode<JSONObject, String> {
-        ObjectKeyNode(@NotNull String name, @Nullable JSONPathNode<?, ?> child) {
+    public static final class ObjectKeyNode extends MojangsonPathNode<MojangsonCompound, String> {
+        ObjectKeyNode(@NotNull String name, @Nullable MojangsonPathNode<?, ?> child) {
             super(name, child);
         }
 
         @Override
-        public @Nullable JSONValue<?> get(@NotNull JSONObject structure) {
+        public @Nullable MojangsonValue<?> get(@NotNull MojangsonCompound structure) {
             if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeOf(parameter));
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+        public <U> @Nullable U access(@NotNull MojangsonCompound structure, @NotNull BiFunction<MojangsonCompound, Object, U> function) {
             return function.apply(structure, parameter);
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONObject, String> copy() {
+        public @NotNull MojangsonPathNode<MojangsonCompound, String> copy() {
             return new ObjectKeyNode(parameter, child == null ? null : child.copy());
         }
 
@@ -53,24 +53,24 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
     }
 
-    public static final class ArrayIndexNode extends JSONPathNode<JSONArray, Integer> {
-        ArrayIndexNode(@NotNull Integer index, @Nullable JSONPathNode<?, ?> child) {
+    public static final class ArrayIndexNode extends MojangsonPathNode<MojangsonList, Integer> {
+        ArrayIndexNode(@NotNull Integer index, @Nullable MojangsonPathNode<?, ?> child) {
             super(index, child);
         }
 
         @Override
-        public @Nullable JSONValue<?> get(@NotNull JSONArray structure) {
+        public @Nullable MojangsonValue<?> get(@NotNull MojangsonList structure) {
             if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeAt(parameter));
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+        public <U> @Nullable U access(@NotNull MojangsonList structure, @NotNull BiFunction<MojangsonList, Object, U> function) {
             return function.apply(structure, parameter);
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONArray, Integer> copy() {
+        public @NotNull MojangsonPathNode<MojangsonList, Integer> copy() {
             return new ArrayIndexNode(parameter, child == null ? null : child.copy());
         }
 
@@ -80,19 +80,19 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
     }
 
-    public static final class ObjectKeyCheckerNode extends JSONPathNode<JSONObject, Pair<String, JSONObject>> {
-        ObjectKeyCheckerNode(@NotNull String name, @NotNull JSONObject jsonObject, @Nullable JSONPathNode<?, ?> child) {
+    public static final class ObjectKeyCheckerNode extends MojangsonPathNode<MojangsonCompound, Pair<String, MojangsonCompound>> {
+        ObjectKeyCheckerNode(@NotNull String name, @NotNull MojangsonCompound jsonObject, @Nullable MojangsonPathNode<?, ?> child) {
             super(new Pair<>(name, jsonObject), child);
         }
 
         @Override
-        public @Nullable JSONObject get(@NotNull JSONObject structure) {
+        public @Nullable MojangsonCompound get(@NotNull MojangsonCompound structure) {
             if (!structure.has(parameter.a())) return null;
             else {
-                final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
+                final MojangsonCompound value = structure.get(parameter.a(), MojangsonValueTypes.COMPOUND);
 
-                if (value instanceof JSONObject target) {
-                    final JSONObject condition = parameter.b();
+                if (value instanceof MojangsonCompound target) {
+                    final MojangsonCompound condition = parameter.b();
                     if (target.isSuperOf(condition)) {
                         return value;
                     }
@@ -103,13 +103,13 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+        public <U> @Nullable U access(@NotNull MojangsonCompound structure, @NotNull BiFunction<MojangsonCompound, Object, U> function) {
             if (!structure.has(parameter.a())) return null;
             else {
-                final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
+                final MojangsonCompound value = structure.get(parameter.a(), MojangsonValueTypes.COMPOUND);
 
-                if (value instanceof JSONObject target) {
-                    final JSONObject condition = parameter.b();
+                if (value instanceof MojangsonCompound target) {
+                    final MojangsonCompound condition = parameter.b();
                     if (target.isSuperOf(condition)) {
                         // return value;
                         return function.apply(structure, parameter.a());
@@ -121,7 +121,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONObject, Pair<String, JSONObject>> copy() {
+        public @NotNull MojangsonPathNode<MojangsonCompound, Pair<String, MojangsonCompound>> copy() {
             return new ObjectKeyCheckerNode(parameter.a(), parameter.b(), child == null ? null : child.copy());
         }
 
@@ -131,21 +131,21 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
     }
 
-    public static final class ArrayIndexFinderNode extends JSONPathNode<JSONArray, JSONObject> {
-        ArrayIndexFinderNode(@NotNull JSONObject parameter, @Nullable JSONPathNode<?, ?> child) {
+    public static final class ArrayIndexFinderNode extends MojangsonPathNode<MojangsonList, MojangsonCompound> {
+        ArrayIndexFinderNode(@NotNull MojangsonCompound parameter, @Nullable MojangsonPathNode<?, ?> child) {
             super(parameter, child);
         }
 
         @Override
-        public @Nullable JSONObject get(@NotNull JSONArray structure) {
+        public @Nullable MojangsonCompound get(@NotNull MojangsonList structure) {
             for (int i = 0; i < structure.length(); i++) {
-                if (structure.getTypeAt(i) != JSONValueTypes.OBJECT) {
+                if (structure.getTypeAt(i) != MojangsonValueTypes.COMPOUND) {
                     continue;
                 }
 
-                final JSONObject element = structure.get(i, JSONValueTypes.OBJECT);
+                final MojangsonCompound element = structure.get(i, MojangsonValueTypes.COMPOUND);
 
-                if (element instanceof JSONObject object) {
+                if (element instanceof MojangsonCompound object) {
                     if (object.isSuperOf(parameter)) {
                         return element;
                     }
@@ -158,15 +158,15 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+        public <U> @Nullable U access(@NotNull MojangsonList structure, @NotNull BiFunction<MojangsonList, Object, U> function) {
             for (int i = 0; i < structure.length(); i++) {
-                if (structure.getTypeAt(i) != JSONValueTypes.OBJECT) {
+                if (structure.getTypeAt(i) != MojangsonValueTypes.LIST) {
                     continue;
                 }
 
-                final JSONObject element = structure.get(i, JSONValueTypes.OBJECT);
+                final MojangsonCompound element = structure.get(i, MojangsonValueTypes.COMPOUND);
 
-                if (element instanceof JSONObject object) {
+                if (element instanceof MojangsonCompound object) {
                     if (object.isSuperOf(parameter)) {
                         // return element;
                         return function.apply(structure, i);
@@ -180,7 +180,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONArray, JSONObject> copy() {
+        public @NotNull MojangsonPathNode<MojangsonList, MojangsonCompound> copy() {
             return new ArrayIndexFinderNode(parameter, child == null ? null : child.copy());
         }
 
