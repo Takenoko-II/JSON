@@ -1,25 +1,28 @@
-package com.gmail.takenokoii78.json.values;
+package com.gmail.takenokoii78.mojangson.values;
 
-import com.gmail.takenokoii78.json.JSONValue;
-import com.gmail.takenokoii78.json.JSONValueType;
-import com.gmail.takenokoii78.json.JSONValueTypes;
+import com.gmail.takenokoii78.mojangson.MojangsonValue;
+import com.gmail.takenokoii78.mojangson.MojangsonValueType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> implements JSONIterable<T> {
-    private final JSONValueType<T> type;
+public class TypedMojangsonList<T extends MojangsonValue<?>> extends MojangsonValue<List<T>> implements MojangsonIterable<T> {
+    private final MojangsonValueType<T> type;
 
-    public TypedJSONArray(@NotNull JSONValueType<T> type) {
-        super(new ArrayList<>());
+    public TypedMojangsonList(@NotNull MojangsonValueType<T> type, @NotNull List<T> list) {
+        super(list);
         this.type = type;
     }
 
-    public TypedJSONArray(@NotNull JSONValueType<T> type, @NotNull List<T> list) {
-        super(new ArrayList<>(list));
-        this.type = type;
+    public TypedMojangsonList(@NotNull MojangsonValueType<T> type) {
+        this(type, new ArrayList<>());
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return value.isEmpty();
     }
 
     @Override
@@ -29,18 +32,13 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         else return false;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return value.isEmpty();
-    }
-
     protected boolean checkTypeAt(int index) {
         if (!has(index)) {
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        if (index >= 0) return JSONValueType.of(value.get(index)).equals(type);
-        else return JSONValueType.of(value.get(value.size() + index)).equals(type);
+        if (index >= 0) return MojangsonValueType.of(value.get(index)).equals(type);
+        else return MojangsonValueType.of(value.get(value.size() + index)).equals(type);
     }
 
     public T get(int index) {
@@ -78,7 +76,6 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         else this.value.set(this.value.size() + index, value);
     }
 
-    @Override
     public boolean delete(int index) {
         if (has(index)) {
             if (index >= 0) value.remove(index);
@@ -103,7 +100,7 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
     }
 
     @Override
-    public @NotNull TypedJSONArray<T> copy() {
+    public @NotNull TypedMojangsonList<T> copy() {
         return untyped().copy().typed(type);
     }
 
@@ -118,14 +115,15 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         return list.iterator();
     }
 
-    public @NotNull JSONArray untyped() {
-        final JSONArray array = new JSONArray();
+    public @NotNull MojangsonList untyped() {
+        final MojangsonList list = new MojangsonList();
         for (int i = 0; i < length(); i++) {
-            array.add(get(i));
+            list.add(get(i));
         }
-        return array;
+        return list;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return type + super.toString();

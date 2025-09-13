@@ -24,6 +24,23 @@ public class MojangsonIntArray extends MojangsonArray<int[], MojangsonInt> {
     }
 
     @Override
+    public int length() {
+        return value.length;
+    }
+
+    @Override
+    public boolean clear() {
+        boolean successful = false;
+        for (int i = 0; i < value.length; i++) {
+            if (value[i] != 0) {
+                value[i] = 0;
+                successful = true;
+            }
+        }
+        return successful;
+    }
+
+    @Override
     public @NotNull Iterator<MojangsonInt> iterator() {
         final List<MojangsonInt> bytes = new ArrayList<>();
         for (final int intValue : value) {

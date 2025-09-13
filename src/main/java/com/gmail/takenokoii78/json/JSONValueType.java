@@ -2,7 +2,6 @@ package com.gmail.takenokoii78.json;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.Map;
 
 public abstract class JSONValueType<T extends JSONValue<?>> {
@@ -26,7 +25,7 @@ public abstract class JSONValueType<T extends JSONValue<?>> {
             case Number ignored -> JSONValueTypes.NUMBER;
             case String ignored -> JSONValueTypes.STRING;
             case Map<?, ?> ignored -> JSONValueTypes.OBJECT;
-            case Collection<?> ignored -> JSONValueTypes.ARRAY;
+            case Iterable<?> ignored -> JSONValueTypes.ARRAY;
             case Character ignored -> JSONValueTypes.STRING;
             case null -> JSONValueTypes.NULL;
             default -> {

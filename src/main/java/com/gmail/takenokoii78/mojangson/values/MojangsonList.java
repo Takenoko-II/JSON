@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> implements MojangsonStructure, MojangsonIterable<MojangsonValue<?>> {
+public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> implements MojangsonIterable<MojangsonValue<?>> {
     public MojangsonList(@NotNull List<MojangsonValue<?>> value) {
         super(value);
     }
@@ -18,11 +18,13 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
         this(new ArrayList<>());
     }
 
+    @Override
     public boolean has(int index) {
         if (index >= 0) return index < value.size();
         else return has(value.size() + index);
     }
 
+    @Override
     public boolean isEmpty() {
         return value.isEmpty();
     }
@@ -80,6 +82,7 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
         else return false;
     }
 
+    @Override
     public boolean clear() {
         if (isEmpty()) return false;
         else {
@@ -88,6 +91,7 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
         }
     }
 
+    @Override
     public int length() {
         return value.size();
     }
@@ -156,5 +160,30 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
         }
 
         return false;
+    }
+
+    public boolean isListOf(@NotNull MojangsonValueType<?> type) {
+        for (int i = 0; i < length(); i++) {
+            if (!getTypeAt(i).equals(type)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public <T extends MojangsonValue<?>> TypedMojangsonList<T> typed(@NotNull  MojangsonValueType<T> type) {
+        final TypedMojangsonList<T> array = new TypedMojangsonList<>(type);
+
+        for (int i = 0; i < length(); i++) {
+            if (!getTypeAt(i).equals(type)) {
+                throw new IllegalStateException("その型の値でない要素が見つかりました: " + getTypeAt(i));
+            }
+
+            final T element = get(i, type);
+            array.add(element);
+        }
+
+        return array;
     }
 }

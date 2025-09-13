@@ -6,13 +6,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MojangsonArray<T, U extends MojangsonValue<?>> extends MojangsonPrimitive<T> implements MojangsonIterable<U> {
+public abstract class MojangsonArray<T, U extends MojangsonValue<?>> extends MojangsonValue<T> implements MojangsonIterable<U> {
     protected MojangsonArray(@NotNull T value) {
         super(value);
 
         if (!value.getClass().isArray()) {
             throw new IllegalArgumentException("配列型でない値はMojangsonArrayに変換できません");
         }
+    }
+
+    @Override
+    public boolean has(int index) {
+        if (index >= 0) return index < length();
+        else return has(length() + index);
     }
 
     public abstract @NotNull T toArray();
@@ -49,6 +55,11 @@ public abstract class MojangsonArray<T, U extends MojangsonValue<?>> extends Moj
             @Override
             public boolean clear() {
                 throw new IllegalStateException("MojangsonArrayから作成されたMojangsonListにおいてこの操作は禁じられています");
+            }
+
+            @Override
+            public @NotNull String toString() {
+                return super.toString() + "(View of MojangsonArray)";
             }
         };
     }

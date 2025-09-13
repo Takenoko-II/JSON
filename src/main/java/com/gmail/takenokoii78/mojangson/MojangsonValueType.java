@@ -2,6 +2,7 @@ package com.gmail.takenokoii78.mojangson;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
                 MojangsonValueTypes.COMPOUND.cast(v);
                 yield MojangsonValueTypes.COMPOUND;
             }
-            case List<?> v -> {
+            case Collection<?> v -> {
                 MojangsonValueTypes.LIST.cast(v);
                 yield MojangsonValueTypes.LIST;
             }

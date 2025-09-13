@@ -24,6 +24,23 @@ public class MojangsonLongArray extends MojangsonArray<long[], MojangsonLong> {
     }
 
     @Override
+    public int length() {
+        return value.length;
+    }
+
+    @Override
+    public boolean clear() {
+        boolean successful = false;
+        for (int i = 0; i < value.length; i++) {
+            if (value[i] != 0) {
+                value[i] = 0;
+                successful = true;
+            }
+        }
+        return successful;
+    }
+
+    @Override
     public @NotNull Iterator<MojangsonLong> iterator() {
         final List<MojangsonLong> longs = new ArrayList<>();
         for (final long longValue : value) {

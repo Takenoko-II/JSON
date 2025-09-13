@@ -1,12 +1,8 @@
 package com.gmail.takenokoii78.mojangson;
 
 import com.gmail.takenokoii78.mojangson.values.*;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class MojangsonValueTypes {
     private MojangsonValueTypes() {}
@@ -131,17 +127,25 @@ public final class MojangsonValueTypes {
     public static final MojangsonValueType<MojangsonList> LIST = new MojangsonValueType<>(MojangsonList.class) {
         @Override
         public MojangsonList cast(Object value) {
-            if (value instanceof MojangsonList mojangsonList) return mojangsonList;
-            else if (value instanceof List<?> list) {
-                final List<MojangsonValue<?>> listOfMojangson = new ArrayList<>();
-
-                for (final Object element : list) {
-                    listOfMojangson.add(of(element).cast(element));
+            switch (value) {
+                case MojangsonList mojangsonList -> {
+                    return mojangsonList;
                 }
+                case TypedMojangsonList<?> typedMojangsonList -> {
+                    return typedMojangsonList.untyped();
+                }
+                case Collection<?> iterable -> {
+                    final List<MojangsonValue<?>> listOfMojangson = new ArrayList<>();
 
-                return new MojangsonList(listOfMojangson);
+                    for (final Object element : iterable) {
+                        listOfMojangson.add(of(element).cast(element));
+                    }
+
+                    return new MojangsonList(listOfMojangson);
+                }
+                case null, default ->
+                    throw new IllegalArgumentException("List<?>型でない値はMojangsonListに変換できません");
             }
-            else throw new IllegalArgumentException("List<?>型でない値はMojangsonListに変換できません");
         }
     };
 

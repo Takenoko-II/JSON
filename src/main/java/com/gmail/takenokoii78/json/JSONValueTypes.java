@@ -39,11 +39,6 @@ public final class JSONValueTypes {
                 case null, default -> throw new IllegalArgumentException("value is not a string value");
             };
         }
-
-        @Override
-        public String toString() {
-            return "String";
-        }
     };
 
     public static final @NotNull JSONValueType<JSONObject> OBJECT = new JSONValueType<>(JSONObject.class) {
@@ -76,6 +71,9 @@ public final class JSONValueTypes {
             switch (value) {
                 case JSONArray jsonArray -> {
                     return jsonArray;
+                }
+                case TypedJSONArray<?> typedJsonArray -> {
+                    return typedJsonArray.untyped();
                 }
                 case Iterable<?> iterable -> {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();

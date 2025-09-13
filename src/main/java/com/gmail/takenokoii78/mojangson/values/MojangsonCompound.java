@@ -41,7 +41,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
         }
 
         if (!getTypeOf(key).equals(type)) {
-            throw new IllegalArgumentException("キー '" + key + "' は期待される型の値と紐づけられていません");
+            throw new IllegalArgumentException("キー '" + key + "' は期待される型の値と紐づけられていません: " + getTypeOf(key));
         }
 
         return type.cast(value.get(key));
