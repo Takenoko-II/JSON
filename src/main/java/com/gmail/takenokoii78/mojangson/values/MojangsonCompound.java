@@ -51,12 +51,22 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
         this.value.put(key, MojangsonValueType.of(value).cast(value));
     }
 
-    public void delete(@NotNull String key) {
-        if (has(key)) value.remove(key);
+    public boolean delete(@NotNull String key) {
+        if (has(key)) {
+            value.remove(key);
+            return true;
+        }
+        else return false;
     }
 
-    public void clear() {
-        value.clear();
+    public boolean clear() {
+        if (isEmpty()) {
+            return false;
+        }
+        else {
+            value.clear();
+            return true;
+        }
     }
 
     public @NotNull Set<String> keys() {
@@ -125,7 +135,51 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
         return true;
     }
 
-    public @NotNull MojangsonPath.MojangsonPathReference<?, ?> getReference(@NotNull MojangsonPath path) {
-        return path.access(this, reference -> reference);
+    public boolean has(@NotNull MojangsonPath path) {
+        try {
+            return path.access(this, MojangsonPath.MojangsonPathReference::has, false);
+        }
+        catch (MojangsonPath.MojangsonInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public @NotNull MojangsonValueType<?> getTypeOf(@NotNull MojangsonPath path) {
+        try {
+            return path.access(this, MojangsonPath.MojangsonPathReference::getType, false);
+        }
+        catch (MojangsonPath.MojangsonInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public <T extends MojangsonValue<?>> @NotNull T get(@NotNull MojangsonPath path, @NotNull MojangsonValueType<T> type) {
+        try {
+            return path.access(this, reference -> reference.get(type), false);
+        }
+        catch (MojangsonPath.MojangsonInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public boolean delete(@NotNull MojangsonPath path) {
+        try {
+            return path.access(this, MojangsonPath.MojangsonPathReference::delete, false);
+        }
+        catch (MojangsonPath.MojangsonInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void set(@NotNull MojangsonPath path, Object value) {
+        try {
+            path.access(this, reference -> {
+                reference.set(value);
+                return null;
+            }, true);
+        }
+        catch (MojangsonPath.MojangsonInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -78,24 +78,20 @@ public final class JSONPath {
         }
     }
 
-    private <U> @Nullable U onLastNode(@NotNull JSONObject jsonObject, @NotNull TriFunction<JSONStructure, Object, Runnable, U> function) {
+    private <U> @Nullable U onLastNode(@NotNull JSONObject jsonObject, @NotNull BiFunction<JSONStructure, Object, U> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
         JSONPathNode<?, ?> node = root;
         JSONValue<?> p = jsonObject;
-
-        final List<Runnable> list = new ArrayList<>();
 
         while (node.child != null) {
             var q = getNextValue(node, p);
 
             if (q == null) {
-                if (node instanceof JSONPathNode.ObjectKeyNode n) {
+                if (node instanceof JSONPathNode.ObjectKeyNode n && isForcedAccess) {
                     q = new JSONObject();
-                    JSONObject t = (JSONObject) p;
-                    JSONObject s = (JSONObject) q;
-                    list.add(() -> t.set(n.parameter, s));
+                    ((JSONObject) p).set(n.parameter, q);
                 }
                 else {
-                    throw new IllegalArgumentException(node.parameter + " p == null");
+                    throw new JSONInaccessiblePathException(node.parameter);
                 }
             }
 
@@ -103,27 +99,19 @@ public final class JSONPath {
             node = node.child;
         }
 
-        return useNextValue(node, p, (a, b) -> {
-            final boolean[] created = {false};
-            return function.apply(a, b, () -> {
-                if (!created[0]) {
-                    list.forEach(Runnable::run);
-                    created[0] = true;
-                }
-            });
-        });
+        return useNextValue(node, p, function);
     }
 
-    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function) {
-        return onLastNode(jsonObject, (lastStructure, nodeParameter, creator) -> {
+    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
+        return onLastNode(jsonObject, (lastStructure, nodeParameter) -> {
             final JSONPathReference<?, ?> reference = switch (lastStructure) {
-                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) nodeParameter, creator);
-                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) nodeParameter, creator);
+                case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) nodeParameter);
+                case JSONArray array -> new JSONPathReference.JSONArrayPathReference(array, (Integer) nodeParameter);
                 default -> throw new IllegalArgumentException("NEVER HAPPENS");
             };
 
             return function.apply(reference);
-        });
+        }, isForcedAccess);
     }
 
     public int length() {
@@ -166,6 +154,10 @@ public final class JSONPath {
         return new JSONPath(beginNode);
     }
 
+    public @NotNull JSONPath parent() {
+        return slice(0, length() - 2);
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -193,12 +185,9 @@ public final class JSONPath {
 
         protected final T parameter;
 
-        protected final Runnable creator;
-
-        protected JSONPathReference(@NotNull S structure, @NotNull T parameter, @NotNull Runnable creator) {
+        protected JSONPathReference(@NotNull S structure, @NotNull T parameter) {
             this.structure = structure;
             this.parameter = parameter;
-            this.creator = creator;
         }
 
         public abstract boolean has();
@@ -209,11 +198,11 @@ public final class JSONPath {
 
         public abstract void set(@NotNull Object value);
 
-        public abstract void delete();
+        public abstract boolean delete();
 
         private static final class JSONObjectPathReference extends JSONPathReference<JSONObject, String> {
-            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter, @NotNull Runnable creator) {
-                super(structure, parameter, creator);
+            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter) {
+                super(structure, parameter);
             }
 
             @Override
@@ -234,19 +223,18 @@ public final class JSONPath {
 
             @Override
             public void set(@NotNull Object value) {
-                creator.run();
                 structure.set(parameter, value);
             }
 
             @Override
-            public void delete() {
-                structure.delete(parameter);
+            public boolean delete() {
+                return structure.delete(parameter);
             }
         }
 
         private static final class JSONArrayPathReference extends JSONPathReference<JSONArray, Integer> {
-            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter, @NotNull Runnable creator) {
-                super(structure, parameter, creator);
+            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter) {
+                super(structure, parameter);
             }
 
             @Override
@@ -267,19 +255,19 @@ public final class JSONPath {
 
             @Override
             public void set(@NotNull Object value) {
-                creator.run();
                 structure.set(parameter, value);
             }
 
             @Override
-            public void delete() {
-                structure.delete(parameter);
+            public boolean delete() {
+                return structure.delete(parameter);
             }
         }
     }
 
-    @FunctionalInterface
-    private interface TriFunction<S, T, U, R> {
-        R apply(S s, T t, U u);
+    public static final class JSONInaccessiblePathException extends Exception {
+        public JSONInaccessiblePathException(@NotNull Object nodeParameter) {
+            super("パスに対応する値へのアクセスに失敗しました: 条件 " + nodeParameter + " を満たすキーは存在しません");
+        }
     }
 }

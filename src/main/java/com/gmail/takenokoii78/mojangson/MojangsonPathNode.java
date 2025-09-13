@@ -189,6 +189,12 @@ public abstract class MojangsonPathNode<S extends MojangsonStructure, T> {
         public String toString() {
             return "index_finder<" + parameter + ">";
         }
+
+        public static final class MojangsonArrayIndexNotFoundException extends Exception {
+            private MojangsonArrayIndexNotFoundException(@NotNull String message) {
+                super(message);
+            }
+        }
     }
 
     public record Pair<A, B>(A a, B b) {}

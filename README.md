@@ -4,39 +4,34 @@ JSONにMCJEのNbtPathみたいな感じでアクセスしたかっただけ
 <br>Mojangsonもあるよ
 
 ```java
-import com.gmail.takenokoii78.json.JSONParser;
-import com.gmail.takenokoii78.json.JSONPath;
-import com.gmail.takenokoii78.json.values.JSONObject;
+import com.gmail.takenokoii78.mojangson.MojangsonParser;
+import com.gmail.takenokoii78.mojangson.MojangsonPath;
+import com.gmail.takenokoii78.mojangson.MojangsonValueTypes;
+import com.gmail.takenokoii78.mojangson.values.MojangsonCompound;
 
-public final class Main {
+public class Main {
     public static void main(String[] args) {
-        final JSONObject object = JSONParser.object("""
+        System.out.println("Hello world!");
+
+        final MojangsonCompound compound = MojangsonParser.compound("""
             {
-                "foo": {
-                    "bar": [
-                        "a",
-                        "b",
-                        { "c": 1 }
-                    ]
+                id: 'minecraft:carrot_on_a_stick',
+                count: 1,
+                components: {
+                    'minecraft:custom_data': {
+                        foo: bar
+                    }
                 }
             }
             """);
 
-        final JSONPath path = JSONPath.of("foo{\"bar\":[{ \"c\": 1 }]}.bar[-1].d");
+        final MojangsonPath path = MojangsonPath.of("components.minecraft:custom_data{foo:bar}.foo");
 
-        System.out.println(object);
-
-        path.access(object, reference -> {
-            reference.set(2);
-            return null;
-        });
-
-        System.out.println(object);
+        System.out.println(compound.get(path, MojangsonValueTypes.STRING));
     }
 }
 ```
 
 ```
-> {foo={bar=[a, b, {c=1}]}}
-> {foo={bar=[a, b, {c=1, d=2}]}}
+> bar
 ```

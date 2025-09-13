@@ -80,24 +80,20 @@ public final class MojangsonPath {
         }
     }
 
-    private <U> @Nullable U onLastNode(@NotNull MojangsonCompound compound, @NotNull TriFunction<MojangsonStructure, Object, Runnable, U> function) {
+    private <U> @Nullable U onLastNode(@NotNull MojangsonCompound compound, @NotNull BiFunction<MojangsonStructure, Object, U> function, boolean isForcedAccess) throws MojangsonInaccessiblePathException {
         MojangsonPathNode<?, ?> node = root;
         MojangsonValue<?> p = compound;
-
-        final List<Runnable> list = new ArrayList<>();
 
         while (node.child != null) {
             var q = getNextValue(node, p);
 
             if (q == null) {
-                if (node instanceof MojangsonPathNode.ObjectKeyNode n) {
+                if (node instanceof MojangsonPathNode.ObjectKeyNode n && isForcedAccess) {
                     q = new MojangsonCompound();
-                    MojangsonCompound t = (MojangsonCompound) p;
-                    MojangsonCompound s = (MojangsonCompound) q;
-                    list.add(() -> t.set(n.parameter, s));
+                    ((MojangsonCompound) p).set(n.parameter, q);
                 }
                 else {
-                    throw new IllegalArgumentException(node.parameter + " p == null");
+                    throw new MojangsonInaccessiblePathException(node.parameter);
                 }
             }
 
@@ -105,27 +101,19 @@ public final class MojangsonPath {
             node = node.child;
         }
 
-        return useNextValue(node, p, (a, b) -> {
-            final boolean[] created = {false};
-            return function.apply(a, b, () -> {
-                if (!created[0]) {
-                    list.forEach(Runnable::run);
-                    created[0] = true;
-                }
-            });
-        });
+        return useNextValue(node, p, function);
     }
 
-    public <T> T access(@NotNull MojangsonCompound MojangsonCompound, @NotNull Function<MojangsonPathReference<?, ?>, T> function) {
-        return onLastNode(MojangsonCompound, (lastStructure, nodeParameter, creator) -> {
+    public <T> T access(@NotNull MojangsonCompound MojangsonCompound, @NotNull Function<MojangsonPathReference<?, ?>, T> function, boolean isForcedAccess) throws MojangsonInaccessiblePathException {
+        return onLastNode(MojangsonCompound, (lastStructure, nodeParameter) -> {
             final MojangsonPathReference<?, ?> reference = switch (lastStructure) {
-                case MojangsonCompound object -> new MojangsonPathReference.MojangsonCompoundPathReference(object, (String) nodeParameter, creator);
-                case MojangsonList array -> new MojangsonPathReference.MojangsonListPathReference(array, (Integer) nodeParameter, creator);
+                case MojangsonCompound object -> new MojangsonPathReference.MojangsonCompoundPathReference(object, (String) nodeParameter);
+                case MojangsonList array -> new MojangsonPathReference.MojangsonListPathReference(array, (Integer) nodeParameter);
                 default -> throw new IllegalArgumentException("NEVER HAPPENS");
             };
 
             return function.apply(reference);
-        });
+        }, isForcedAccess);
     }
 
     public int length() {
@@ -168,6 +156,10 @@ public final class MojangsonPath {
         return new MojangsonPath(beginNode);
     }
 
+    public @NotNull MojangsonPath parent() {
+        return slice(0, length() - 2);
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -195,12 +187,9 @@ public final class MojangsonPath {
 
         protected final T parameter;
 
-        protected final Runnable creator;
-
-        protected MojangsonPathReference(@NotNull S structure, @NotNull T parameter, @NotNull Runnable creator) {
+        protected MojangsonPathReference(@NotNull S structure, @NotNull T parameter) {
             this.structure = structure;
             this.parameter = parameter;
-            this.creator = creator;
         }
 
         public abstract boolean has();
@@ -211,11 +200,11 @@ public final class MojangsonPath {
 
         public abstract void set(@NotNull Object value);
 
-        public abstract void delete();
+        public abstract boolean delete();
 
         private static final class MojangsonCompoundPathReference extends MojangsonPathReference<MojangsonCompound, String> {
-            private MojangsonCompoundPathReference(@NotNull MojangsonCompound structure, @NotNull String parameter, @NotNull Runnable creator) {
-                super(structure, parameter, creator);
+            private MojangsonCompoundPathReference(@NotNull MojangsonCompound structure, @NotNull String parameter) {
+                super(structure, parameter);
             }
 
             @Override
@@ -236,19 +225,18 @@ public final class MojangsonPath {
 
             @Override
             public void set(@NotNull Object value) {
-                creator.run();
                 structure.set(parameter, value);
             }
 
             @Override
-            public void delete() {
-                structure.delete(parameter);
+            public boolean delete() {
+                return structure.delete(parameter);
             }
         }
 
         private static final class MojangsonListPathReference extends MojangsonPathReference<MojangsonList, Integer> {
-            private MojangsonListPathReference(@NotNull MojangsonList structure, @NotNull Integer parameter, @NotNull Runnable creator) {
-                super(structure, parameter, creator);
+            private MojangsonListPathReference(@NotNull MojangsonList structure, @NotNull Integer parameter) {
+                super(structure, parameter);
             }
 
             @Override
@@ -269,19 +257,19 @@ public final class MojangsonPath {
 
             @Override
             public void set(@NotNull Object value) {
-                creator.run();
                 structure.set(parameter, value);
             }
 
             @Override
-            public void delete() {
-                structure.delete(parameter);
+            public boolean delete() {
+                return structure.delete(parameter);
             }
         }
     }
 
-    @FunctionalInterface
-    private interface TriFunction<S, T, U, R> {
-        R apply(S s, T t, U u);
+    public static final class MojangsonInaccessiblePathException extends Exception {
+        public MojangsonInaccessiblePathException(@NotNull Object nodeParameter) {
+            super("パスに対応する値へのアクセスに失敗しました: 条件 " + nodeParameter + " を満たすキーは存在しません");
+        }
     }
 }

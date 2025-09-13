@@ -42,12 +42,12 @@ public abstract class MojangsonArray<T, U extends MojangsonValue<?>> extends Moj
             }
 
             @Override
-            public void delete(int index) {
+            public boolean delete(int index) {
                 throw new IllegalStateException("MojangsonArrayから作成されたMojangsonListにおいてこの操作は禁じられています (set(0)を使用してください)");
             }
 
             @Override
-            public void clear() {
+            public boolean clear() {
                 throw new IllegalStateException("MojangsonArrayから作成されたMojangsonListにおいてこの操作は禁じられています");
             }
         };

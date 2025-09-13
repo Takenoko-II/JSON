@@ -48,12 +48,20 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         this.value.put(key, JSONValueType.of(value).cast(value));
     }
 
-    public void delete(@NotNull String key) {
-        if (has(key)) value.remove(key);
+    public boolean delete(@NotNull String key) {
+        if (has(key)) {
+            value.remove(key);
+            return true;
+        }
+        else return false;
     }
 
-    public void clear() {
-        value.clear();
+    public boolean clear() {
+        if (isEmpty()) return false;
+        else {
+            value.clear();
+            return true;
+        }
     }
 
     public Set<String> keys() {
@@ -123,5 +131,53 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         }
 
         return true;
+    }
+
+    public boolean has(@NotNull JSONPath path) {
+        try {
+            return path.access(this, JSONPath.JSONPathReference::has, false);
+        }
+        catch (JSONPath.JSONInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public @NotNull JSONValueType<?> getTypeOf(@NotNull JSONPath path) {
+        try {
+            return path.access(this, JSONPath.JSONPathReference::getType, false);
+        }
+        catch (JSONPath.JSONInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public <T extends JSONValue<?>> @NotNull T get(@NotNull JSONPath path, @NotNull JSONValueType<T> type) {
+        try {
+            return path.access(this, reference -> reference.get(type), false);
+        }
+        catch (JSONPath.JSONInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public boolean delete(@NotNull JSONPath path) {
+        try {
+            return path.access(this, JSONPath.JSONPathReference::delete, false);
+        }
+        catch (JSONPath.JSONInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void set(@NotNull JSONPath path, Object value) {
+        try {
+            path.access(this, reference -> {
+                reference.set(value);
+                return null;
+            }, true);
+        }
+        catch (JSONPath.JSONInaccessiblePathException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

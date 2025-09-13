@@ -73,16 +73,22 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
     }
 
     @Override
-    public void delete(int index) {
+    public boolean delete(int index) {
         if (has(index)) {
             if (index >= 0) value.remove(index);
             else value.remove(value.size() + index);
+            return true;
         }
+        else return false;
     }
 
     @Override
-    public void clear() {
-        value.clear();
+    public boolean clear() {
+        if (isEmpty()) return false;
+        else {
+            value.clear();
+            return true;
+        }
     }
 
     @Override

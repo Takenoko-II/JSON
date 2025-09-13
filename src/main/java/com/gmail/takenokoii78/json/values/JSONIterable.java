@@ -10,9 +10,9 @@ public interface JSONIterable<T extends JSONValue<?>> extends JSONStructure, Ite
 
     int length();
 
-    void delete(int index);
+    boolean delete(int index);
 
-    void clear();
+    boolean clear();
 
     @NotNull JSONIterable<T> copy();
 }

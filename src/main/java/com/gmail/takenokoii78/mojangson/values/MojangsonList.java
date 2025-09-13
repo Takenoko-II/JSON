@@ -71,15 +71,21 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
         else this.value.set(this.value.size() + index, MojangsonValueType.of(value).cast(value));
     }
 
-    public void delete(int index) {
+    public boolean delete(int index) {
         if (has(index)) {
             if (index >= 0) value.remove(index);
             else value.remove(value.size() + index);
+            return true;
         }
+        else return false;
     }
 
-    public void clear() {
-        value.clear();
+    public boolean clear() {
+        if (isEmpty()) return false;
+        else {
+            value.clear();
+            return true;
+        }
     }
 
     public int length() {
