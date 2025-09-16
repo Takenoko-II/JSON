@@ -20,7 +20,7 @@ public class JSONFile {
     public JSONFile(@NotNull Path path) {
         this.path = path;
 
-        if (!path.toFile().isFile()) {
+        if (path.toFile().exists() && !path.toFile().isFile()) {
             throw new IllegalArgumentException("そのパスはファイルパスとして無効です");
         }
     }

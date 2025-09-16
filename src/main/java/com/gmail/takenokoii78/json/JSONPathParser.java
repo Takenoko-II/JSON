@@ -300,7 +300,7 @@ public class JSONPathParser {
         return new JSONPath(rootNode);
     }
 
-    protected static @NotNull JSONPath parse(@NotNull String path) {
+    protected static @NotNull JSONPath parse(@NotNull String path) throws JSONParseException {
         final JSONPathParser parser = new JSONPathParser();
         parser.text = path;
         return parser.parse();

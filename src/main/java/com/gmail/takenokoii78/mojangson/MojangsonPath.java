@@ -178,7 +178,7 @@ public final class MojangsonPath {
         return sb.append(" }").toString();
     }
 
-    public static @NotNull MojangsonPath of(@NotNull String path) {
+    public static @NotNull MojangsonPath of(@NotNull String path) throws MojangsonParseException {
         return MojangsonPathParser.parse(path);
     }
 

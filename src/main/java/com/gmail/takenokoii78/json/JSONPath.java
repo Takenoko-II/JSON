@@ -176,7 +176,7 @@ public final class JSONPath {
         return sb.append(" }").toString();
     }
 
-    public static @NotNull JSONPath of(@NotNull String path) {
+    public static @NotNull JSONPath of(@NotNull String path) throws JSONParseException {
         return JSONPathParser.parse(path);
     }
 

@@ -300,7 +300,7 @@ public class MojangsonPathParser {
         return new MojangsonPath(rootNode);
     }
 
-    protected static @NotNull MojangsonPath parse(@NotNull String path) {
+    protected static @NotNull MojangsonPath parse(@NotNull String path) throws MojangsonParseException {
         final MojangsonPathParser parser = new MojangsonPathParser();
         parser.text = path;
         return parser.parse();

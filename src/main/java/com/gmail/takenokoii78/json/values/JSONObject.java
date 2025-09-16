@@ -138,7 +138,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
             return path.access(this, JSONPath.JSONPathReference::has, false);
         }
         catch (JSONPath.JSONInaccessiblePathException e) {
-            throw new IllegalStateException(e);
+            return false;
         }
     }
 
