@@ -3,12 +3,26 @@ package com.gmail.takenokoii78.json;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class JSONValueType<T extends JSONValue<?>> {
     protected final Class<T> clazz;
 
     protected JSONValueType(@NotNull Class<T> clazz) {
         this.clazz = clazz;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        JSONValueType<?> that = (JSONValueType<?>) object;
+        return Objects.equals(clazz, that.clazz);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clazz);
     }
 
     public abstract T cast(Object value) throws IllegalArgumentException;

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
     protected final Class<T> clazz;
@@ -14,6 +15,19 @@ public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
     }
 
     public abstract T cast(Object value);
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        MojangsonValueType<?> that = (MojangsonValueType<?>) object;
+        return Objects.equals(clazz, that.clazz);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clazz);
+    }
 
     @Override
     public @NotNull String toString() {

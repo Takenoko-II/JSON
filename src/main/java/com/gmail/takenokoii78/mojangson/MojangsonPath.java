@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -176,6 +177,19 @@ public final class MojangsonPath {
         }
 
         return sb.append(" }").toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(toString());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        else if (obj == this) return true;
+        else if (obj.getClass() != getClass()) return false;
+        else return toString().equals(obj.toString());
     }
 
     public static @NotNull MojangsonPath of(@NotNull String path) throws MojangsonParseException {

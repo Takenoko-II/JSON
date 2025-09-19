@@ -12,6 +12,7 @@ public final class MojangsonValueTypes {
         public MojangsonByte cast(Object value) {
             if (value instanceof MojangsonByte mojangsonByte) return mojangsonByte;
             else if (value instanceof Byte byteValue) return MojangsonByte.valueOf(byteValue);
+            else if (value instanceof Boolean booleanValue) return MojangsonByte.valueOf(booleanValue ? (byte) 1 : (byte) 0);
             else throw new IllegalArgumentException("byte型でない値はMojangsonByteに変換できません");
         }
     };
