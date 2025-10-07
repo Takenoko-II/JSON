@@ -140,7 +140,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
             return path.access(this, MojangsonPath.MojangsonPathReference::has, false);
         }
         catch (MojangsonPath.MojangsonInaccessiblePathException e) {
-            throw new IllegalStateException(e);
+            return false;
         }
     }
 
@@ -167,7 +167,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
             return path.access(this, MojangsonPath.MojangsonPathReference::delete, false);
         }
         catch (MojangsonPath.MojangsonInaccessiblePathException e) {
-            throw new IllegalStateException(e);
+            return false;
         }
     }
 

@@ -1,9 +1,7 @@
 package com.gmail.takenokoii78;
 
 import com.gmail.takenokoii78.mojangson.MojangsonParser;
-import com.gmail.takenokoii78.mojangson.MojangsonPath;
 import com.gmail.takenokoii78.mojangson.MojangsonSerializer;
-import com.gmail.takenokoii78.mojangson.MojangsonValueTypes;
 import com.gmail.takenokoii78.mojangson.values.MojangsonCompound;
 
 public class Main {
