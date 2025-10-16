@@ -149,6 +149,10 @@ public final class JSONPath {
             node = node.child;
         }
 
+        if (node == null) {
+            throw new IllegalStateException("NEVER HAPPENS");
+        }
+
         node.child = null;
 
         return new JSONPath(beginNode);

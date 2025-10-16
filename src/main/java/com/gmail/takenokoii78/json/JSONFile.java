@@ -4,6 +4,7 @@ import com.gmail.takenokoii78.json.values.JSONArray;
 import com.gmail.takenokoii78.json.values.JSONObject;
 import com.gmail.takenokoii78.json.values.JSONStructure;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +15,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.function.Function;
 
+@NullMarked
 public class JSONFile {
     private final Path path;
 
-    public JSONFile(@NotNull Path path) {
+    public JSONFile(Path path) {
         this.path = path;
 
         if (path.toFile().exists() && !path.toFile().isFile()) {
@@ -25,19 +27,19 @@ public class JSONFile {
         }
     }
 
-    public JSONFile(@NotNull String path) {
+    public JSONFile(String path) {
         this(Path.of(path));
     }
 
-    public JSONFile(@NotNull File file) {
+    public JSONFile(File file) {
         this(file.toPath());
     }
 
-    public @NotNull Path getPath() {
+    public Path getPath() {
         return path;
     }
 
-    protected @NotNull String readAsString() throws IllegalStateException {
+    protected String readAsString() throws IllegalStateException {
         if (exists()) try {
             return String.join("\n", Files.readAllLines(path));
         }
@@ -47,7 +49,7 @@ public class JSONFile {
         else throw new IllegalStateException("ファイルが存在しません");
     }
 
-    protected void writeAsString(@NotNull String json) throws IllegalStateException {
+    protected void writeAsString(String json) throws IllegalStateException {
         if (exists()) try {
             Files.write(
                 path,
@@ -96,23 +98,23 @@ public class JSONFile {
         else throw new IllegalStateException("ファイルが存在しません");
     }
 
-    public @NotNull JSONStructure read() throws JSONParseException, IllegalStateException {
+    public JSONStructure read() throws JSONParseException, IllegalStateException {
         return JSONParser.structure(readAsString());
     }
 
-    public void write(@NotNull JSONStructure structure) throws JSONSerializationException, IllegalStateException {
+    public void write(JSONStructure structure) throws JSONSerializationException, IllegalStateException {
         writeAsString(JSONSerializer.serialize(structure));
     }
 
-    public @NotNull JSONObject readAsObject() throws JSONParseException, IllegalStateException {
+    public JSONObject readAsObject() throws JSONParseException, IllegalStateException {
         return JSONParser.object(readAsString());
     }
 
-    public @NotNull JSONArray readAsArray() throws JSONParseException, IllegalStateException {
+    public JSONArray readAsArray() throws JSONParseException, IllegalStateException {
         return JSONParser.array(readAsString());
     }
 
-    public void edit(@NotNull Function<JSONStructure, JSONStructure> function) throws JSONParseException, JSONSerializationException, IllegalStateException {
+    public void edit(Function<JSONStructure, JSONStructure> function) throws JSONParseException, JSONSerializationException, IllegalStateException {
         write(function.apply(read()));
     }
 }

@@ -3,90 +3,92 @@ package com.gmail.takenokoii78.json;
 import com.gmail.takenokoii78.json.values.JSONArray;
 import com.gmail.takenokoii78.json.values.JSONObject;
 import com.gmail.takenokoii78.json.values.JSONStructure;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
+@NullMarked
 public abstract class JSONPathNode<S extends JSONStructure, T> {
     protected final T parameter;
 
+    @Nullable
     protected JSONPathNode<?, ?> child;
 
-    protected JSONPathNode(@NotNull T parameter, @Nullable JSONPathNode<?, ?> child) {
+    protected JSONPathNode(T parameter, @Nullable JSONPathNode<?, ?> child) {
         this.parameter = parameter;
         this.child = child;
     }
 
-    public abstract @Nullable JSONValue<?> get(@NotNull S structure);
+    public abstract @Nullable JSONValue<?> get(S structure);
 
-    public abstract <U> @Nullable U access(@NotNull S structure, @NotNull BiFunction<S, Object, U> function);
+    public abstract <U> @Nullable U access(S structure, BiFunction<S, Object, U> function);
 
-    public abstract @NotNull JSONPathNode<S, T> copy();
+    public abstract JSONPathNode<S, T> copy();
 
-    public abstract @NotNull String toString();
+    public abstract String toString();
 
     public static final class ObjectKeyNode extends JSONPathNode<JSONObject, String> {
-        ObjectKeyNode(@NotNull String name, @Nullable JSONPathNode<?, ?> child) {
+        ObjectKeyNode(String name, @Nullable JSONPathNode<?, ?> child) {
             super(name, child);
         }
 
         @Override
-        public @Nullable JSONValue<?> get(@NotNull JSONObject structure) {
+        public @Nullable JSONValue<?> get(JSONObject structure) {
             if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeOf(parameter));
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+        public <U> U access(JSONObject structure, BiFunction<JSONObject, Object, U> function) {
             return function.apply(structure, parameter);
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONObject, String> copy() {
+        public JSONPathNode<JSONObject, String> copy() {
             return new ObjectKeyNode(parameter, child == null ? null : child.copy());
         }
 
         @Override
-        public @NotNull String toString() {
+        public String toString() {
             return "key<" + parameter + ">";
         }
     }
 
     public static final class ArrayIndexNode extends JSONPathNode<JSONArray, Integer> {
-        ArrayIndexNode(@NotNull Integer index, @Nullable JSONPathNode<?, ?> child) {
+        ArrayIndexNode(Integer index, @Nullable JSONPathNode<?, ?> child) {
             super(index, child);
         }
 
         @Override
-        public @Nullable JSONValue<?> get(@NotNull JSONArray structure) {
+        public @Nullable JSONValue<?> get(JSONArray structure) {
             if (!structure.has(parameter)) return null;
             else return structure.get(parameter, structure.getTypeAt(parameter));
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+        public <U> @Nullable U access(JSONArray structure, BiFunction<JSONArray, Object, U> function) {
             return function.apply(structure, parameter);
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONArray, Integer> copy() {
+        public JSONPathNode<JSONArray, Integer> copy() {
             return new ArrayIndexNode(parameter, child == null ? null : child.copy());
         }
 
         @Override
-        public @NotNull String toString() {
+        public String toString() {
             return "index<" + parameter + ">";
         }
     }
 
     public static final class ObjectKeyCheckerNode extends JSONPathNode<JSONObject, Pair<String, JSONObject>> {
-        ObjectKeyCheckerNode(@NotNull String name, @NotNull JSONObject jsonObject, @Nullable JSONPathNode<?, ?> child) {
+        ObjectKeyCheckerNode(String name, JSONObject jsonObject, @Nullable JSONPathNode<?, ?> child) {
             super(new Pair<>(name, jsonObject), child);
         }
 
         @Override
-        public @Nullable JSONObject get(@NotNull JSONObject structure) {
+        public @Nullable JSONObject get(JSONObject structure) {
             if (!structure.has(parameter.a())) return null;
             else {
                 final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
@@ -103,7 +105,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONObject structure, @NotNull BiFunction<JSONObject, Object, U> function) {
+        public <U> @Nullable U access(JSONObject structure, BiFunction<JSONObject, Object, U> function) {
             if (!structure.has(parameter.a())) return null;
             else {
                 final JSONObject value = structure.get(parameter.a(), JSONValueTypes.OBJECT);
@@ -121,23 +123,23 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONObject, Pair<String, JSONObject>> copy() {
+        public JSONPathNode<JSONObject, Pair<String, JSONObject>> copy() {
             return new ObjectKeyCheckerNode(parameter.a(), parameter.b(), child == null ? null : child.copy());
         }
 
         @Override
-        public @NotNull String toString() {
+        public String toString() {
             return "key_checker<" + parameter.a() + ", " + parameter.b() + ">";
         }
     }
 
     public static final class ArrayIndexFinderNode extends JSONPathNode<JSONArray, JSONObject> {
-        ArrayIndexFinderNode(@NotNull JSONObject parameter, @Nullable JSONPathNode<?, ?> child) {
+        ArrayIndexFinderNode(JSONObject parameter, @Nullable JSONPathNode<?, ?> child) {
             super(parameter, child);
         }
 
         @Override
-        public @Nullable JSONObject get(@NotNull JSONArray structure) {
+        public @Nullable JSONObject get(JSONArray structure) {
             for (int i = 0; i < structure.length(); i++) {
                 if (structure.getTypeAt(i) != JSONValueTypes.OBJECT) {
                     continue;
@@ -158,7 +160,7 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public <U> @Nullable U access(@NotNull JSONArray structure, @NotNull BiFunction<JSONArray, Object, U> function) {
+        public <U> @Nullable U access(JSONArray structure, BiFunction<JSONArray, Object, U> function) {
             for (int i = 0; i < structure.length(); i++) {
                 if (structure.getTypeAt(i) != JSONValueTypes.OBJECT) {
                     continue;
@@ -180,11 +182,10 @@ public abstract class JSONPathNode<S extends JSONStructure, T> {
         }
 
         @Override
-        public @NotNull JSONPathNode<JSONArray, JSONObject> copy() {
+        public JSONPathNode<JSONArray, JSONObject> copy() {
             return new ArrayIndexFinderNode(parameter, child == null ? null : child.copy());
         }
 
-        @NotNull
         @Override
         public String toString() {
             return "index_finder<" + parameter + ">";
