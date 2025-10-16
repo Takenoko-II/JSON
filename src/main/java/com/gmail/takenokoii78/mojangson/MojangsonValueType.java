@@ -1,20 +1,19 @@
 package com.gmail.takenokoii78.mojangson;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
     protected final Class<T> clazz;
 
-    protected MojangsonValueType(@NotNull Class<T> clazz) {
+    protected MojangsonValueType(Class<T> clazz) {
         this.clazz = clazz;
     }
 
-    public abstract T cast(Object value);
+    public abstract T toMojangson(@Nullable Object value);
 
     @Override
     public boolean equals(Object object) {
@@ -30,11 +29,11 @@ public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return clazz.getSimpleName();
     }
 
-    public static @NotNull MojangsonValueType<?> of(Object value) {
+    public static MojangsonValueType<?> get(@Nullable Object value) {
         return switch (value) {
             case Boolean ignored -> MojangsonValueTypes.BYTE;
             case Byte ignored -> MojangsonValueTypes.BYTE;
@@ -49,14 +48,14 @@ public abstract class MojangsonValueType<T extends MojangsonValue<?>> {
             case int[] ignored -> MojangsonValueTypes.INT_ARRAY;
             case long[] ignored -> MojangsonValueTypes.LONG_ARRAY;
             case Map<?, ?> v -> {
-                MojangsonValueTypes.COMPOUND.cast(v);
+                MojangsonValueTypes.COMPOUND.toMojangson(v);
                 yield MojangsonValueTypes.COMPOUND;
             }
             case Collection<?> v -> {
-                MojangsonValueTypes.LIST.cast(v);
+                MojangsonValueTypes.LIST.toMojangson(v);
                 yield MojangsonValueTypes.LIST;
             }
-            case MojangsonValue<?> v -> of(v.value);
+            case MojangsonValue<?> v -> get(v.value);
             case null -> MojangsonValueTypes.NULL;
             default -> throw new IllegalArgumentException("対応していない型の値(" + value.getClass().getName() + "型)が渡されました");
         };

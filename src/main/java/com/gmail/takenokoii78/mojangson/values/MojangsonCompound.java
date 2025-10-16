@@ -32,7 +32,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
             throw new IllegalArgumentException("キー '" + key + "' は存在しません");
         }
 
-        return MojangsonValueType.of(value.get(key));
+        return MojangsonValueType.get(value.get(key));
     }
 
     public @NotNull <T extends MojangsonValue<?>> T get(@NotNull String key, MojangsonValueType<T> type) {
@@ -44,11 +44,11 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
             throw new IllegalArgumentException("キー '" + key + "' は期待される型の値と紐づけられていません: " + getTypeOf(key));
         }
 
-        return type.cast(value.get(key));
+        return type.toMojangson(value.get(key));
     }
 
     public void set(@NotNull String key, Object value) {
-        this.value.put(key, MojangsonValueType.of(value).cast(value));
+        this.value.put(key, MojangsonValueType.get(value).toMojangson(value));
     }
 
     public boolean delete(@NotNull String key) {
@@ -103,7 +103,7 @@ public class MojangsonCompound extends MojangsonValue<Map<String, MojangsonValue
 
     @Override
     public @NotNull MojangsonStructure copy() {
-        return MojangsonValueTypes.COMPOUND.cast(toMap());
+        return MojangsonValueTypes.COMPOUND.toMojangson(toMap());
     }
 
     public boolean isSuperOf(@NotNull MojangsonCompound other) {

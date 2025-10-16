@@ -1,18 +1,20 @@
 package com.gmail.takenokoii78.json.values;
 
 import com.gmail.takenokoii78.json.*;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@NullMarked
 public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JSONIterable<JSONValue<?>> {
     public JSONArray() {
         super(new ArrayList<>());
     }
 
-    public JSONArray(@NotNull List<JSONValue<?>> list) {
+    public JSONArray(List<JSONValue<?>> list) {
         super(new ArrayList<>(list));
     }
 
@@ -33,11 +35,11 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        if (index >= 0) return JSONValueType.of(value.get(index));
-        else return JSONValueType.of(value.get(value.size() + index));
+        if (index >= 0) return JSONValueType.get(value.get(index));
+        else return JSONValueType.get(value.get(value.size() + index));
     }
 
-    public <T extends JSONValue<?>> T get(int index, @NotNull JSONValueType<T> type) {
+    public <T extends JSONValue<?>> T get(int index, JSONValueType<T> type) {
         if (!has(index)) {
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
@@ -46,30 +48,30 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
             throw new IllegalArgumentException("インデックス '" + index + "' は期待される型の値と紐づけられていません");
         }
 
-        if (index >= 0) return type.cast(value.get(index));
-        else return type.cast(value.get(value.size() + index));
+        if (index >= 0) return type.toJSON(value.get(index));
+        else return type.toJSON(value.get(value.size() + index));
     }
 
-    public void add(int index, Object value) {
+    public void add(int index, @Nullable Object value) {
         if (index > this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        if (index >= 0) this.value.add(index, JSONValueType.of(value).cast(value));
-        else this.value.add(this.value.size() + index, JSONValueType.of(value).cast(value));
+        if (index >= 0) this.value.add(index, JSONValueType.get(value).toJSON(value));
+        else this.value.add(this.value.size() + index, JSONValueType.get(value).toJSON(value));
     }
 
-    public void add(Object value) {
-        this.value.add(JSONValueType.of(value).cast(value));
+    public void add(@Nullable Object value) {
+        this.value.add(JSONValueType.get(value).toJSON(value));
     }
 
-    public void set(int index, Object value) {
+    public void set(int index, @Nullable Object value) {
         if (index >= this.value.size()) {
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        if (index >= 0) this.value.set(index, JSONValueType.of(value).cast(value));
-        else this.value.set(this.value.size() + index, JSONValueType.of(value).cast(value));
+        if (index >= 0) this.value.set(index, JSONValueType.get(value).toJSON(value));
+        else this.value.set(this.value.size() + index, JSONValueType.get(value).toJSON(value));
     }
 
     @Override
@@ -97,7 +99,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
     }
 
     @Override
-    public @NotNull Iterator<JSONValue<?>> iterator() {
+    public Iterator<JSONValue<?>> iterator() {
         final List<JSONValue<?>> list = new ArrayList<>();
 
         for (int i = 0; i < this.value.size(); i++) {
@@ -107,7 +109,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         return list.iterator();
     }
 
-    public @NotNull List<Object> asList() {
+    public List<@Nullable Object> asList() {
         final List<Object> list = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -133,11 +135,11 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
     }
 
     @Override
-    public @NotNull JSONArray copy() {
-        return JSONValueTypes.ARRAY.cast(asList());
+    public JSONArray copy() {
+        return JSONValueTypes.ARRAY.toJSON(asList());
     }
 
-    public boolean isSuperOf(@NotNull JSONArray other) {
+    public boolean isSuperOf(JSONArray other) {
         if (other.length() == 0) return true;
 
         for (final JSONValue<?> conditionValue : other) {
@@ -159,7 +161,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         return false;
     }
 
-    public boolean isArrayOf(@NotNull JSONValueType<?> type) {
+    public boolean isArrayOf(JSONValueType<?> type) {
         for (int i = 0; i < length(); i++) {
             if (!getTypeAt(i).equals(type)) {
                 return false;
@@ -169,7 +171,7 @@ public final class JSONArray extends JSONValue<List<JSONValue<?>>> implements JS
         return true;
     }
 
-    public <T extends JSONValue<?>> TypedJSONArray<T> typed(@NotNull JSONValueType<T> type) {
+    public <T extends JSONValue<?>> TypedJSONArray<T> typed(JSONValueType<T> type) {
         final TypedJSONArray<T> array = new TypedJSONArray<>(type);
 
         for (int i = 0; i < length(); i++) {

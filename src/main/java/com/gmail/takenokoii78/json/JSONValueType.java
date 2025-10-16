@@ -1,14 +1,16 @@
 package com.gmail.takenokoii78.json;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
 
+@NullMarked
 public abstract class JSONValueType<T extends JSONValue<?>> {
     protected final Class<T> clazz;
 
-    protected JSONValueType(@NotNull Class<T> clazz) {
+    protected JSONValueType(Class<T> clazz) {
         this.clazz = clazz;
     }
 
@@ -25,16 +27,16 @@ public abstract class JSONValueType<T extends JSONValue<?>> {
         return Objects.hash(clazz);
     }
 
-    public abstract T cast(Object value) throws IllegalArgumentException;
+    public abstract T toJSON(@Nullable Object value) throws IllegalArgumentException;
 
     @Override
     public String toString() {
         return clazz.getSimpleName();
     }
 
-    public static @NotNull JSONValueType<?> of(Object value) {
+    public static JSONValueType<?> get(@Nullable Object value) {
         return switch (value) {
-            case JSONValue<?> jsonValue -> of(jsonValue.value);
+            case JSONValue<?> jsonValue -> get(jsonValue.value);
             case Boolean ignored -> JSONValueTypes.BOOLEAN;
             case Number ignored -> JSONValueTypes.NUMBER;
             case String ignored -> JSONValueTypes.STRING;

@@ -1,13 +1,14 @@
 package com.gmail.takenokoii78.mojangson;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class MojangsonSerializationException extends RuntimeException {
-    protected MojangsonSerializationException(@NotNull String message) {
+    protected MojangsonSerializationException(String message) {
         super(message);
     }
 
-    protected MojangsonSerializationException(@NotNull String message, @NotNull Throwable cause) {
+    protected MojangsonSerializationException(String message, Throwable cause) {
         super(message, cause);
     }
 }

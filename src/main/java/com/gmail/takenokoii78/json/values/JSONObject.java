@@ -1,22 +1,24 @@
 package com.gmail.takenokoii78.json.values;
 
 import com.gmail.takenokoii78.json.*;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@NullMarked
 public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> implements JSONStructure {
     public JSONObject() {
         super(new HashMap<>());
     }
 
-    public JSONObject(@NotNull Map<String, JSONValue<?>> map) {
+    public JSONObject(Map<String, JSONValue<?>> map) {
         super(map);
     }
 
-    public boolean has(@NotNull String key) {
+    public boolean has(String key) {
         return value.containsKey(key);
     }
 
@@ -24,15 +26,15 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         return value.isEmpty();
     }
 
-    public @NotNull JSONValueType<?> getTypeOf(@NotNull String key) {
+    public JSONValueType<?> getTypeOf(String key) {
         if (!has(key)) {
             throw new IllegalArgumentException("キー '" + key + "' は存在しません");
         }
 
-        return JSONValueType.of(value.get(key));
+        return JSONValueType.get(value.get(key));
     }
 
-    public @NotNull <T extends JSONValue<?>> T get(@NotNull String key, JSONValueType<T> type) {
+    public <T extends JSONValue<?>> T get(String key, JSONValueType<T> type) {
         if (!has(key)) {
             throw new IllegalArgumentException("キー '" + key + "' は存在しません");
         }
@@ -41,14 +43,14 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
             throw new IllegalArgumentException("キー '" + key + "' は期待される型の値と紐づけられていません: " + getTypeOf(key));
         }
 
-        return type.cast(value.get(key));
+        return type.toJSON(value.get(key));
     }
 
-    public void set(@NotNull String key, Object value) {
-        this.value.put(key, JSONValueType.of(value).cast(value));
+    public void set(String key, Object value) {
+        this.value.put(key, JSONValueType.get(value).toJSON(value));
     }
 
-    public boolean delete(@NotNull String key) {
+    public boolean delete(String key) {
         if (has(key)) {
             value.remove(key);
             return true;
@@ -68,13 +70,13 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         return value.keySet();
     }
 
-    public void merge(@NotNull JSONObject jsonObject) {
+    public void merge(JSONObject jsonObject) {
         for (String key : jsonObject.keys()) {
             set(key, jsonObject.value.get(key));
         }
     }
 
-    public Map<String, Object> asMap() {
+    public Map<String, @Nullable Object> asMap() {
         final Map<String, Object> map = new HashMap<>();
 
         for (String key : keys()) {
@@ -100,11 +102,11 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
     }
 
     @Override
-    public @NotNull JSONObject copy() {
-        return JSONValueTypes.OBJECT.cast(asMap());
+    public JSONObject copy() {
+        return JSONValueTypes.OBJECT.toJSON(asMap());
     }
 
-    public boolean isSuperOf(@NotNull JSONObject other) {
+    public boolean isSuperOf(JSONObject other) {
         for (final String key : other.keys()) {
             if (has(key)) {
                 final JSONValue<?> conditionValue = other.get(key, other.getTypeOf(key));
@@ -133,7 +135,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         return true;
     }
 
-    public boolean has(@NotNull JSONPath path) {
+    public boolean has(JSONPath path) {
         try {
             return path.access(this, JSONPath.JSONPathReference::has, false);
         }
@@ -142,7 +144,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         }
     }
 
-    public @NotNull JSONValueType<?> getTypeOf(@NotNull JSONPath path) {
+    public JSONValueType<?> getTypeOf(JSONPath path) {
         try {
             return path.access(this, JSONPath.JSONPathReference::getType, false);
         }
@@ -151,7 +153,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         }
     }
 
-    public <T extends JSONValue<?>> @NotNull T get(@NotNull JSONPath path, @NotNull JSONValueType<T> type) {
+    public <T extends JSONValue<?>> T get(JSONPath path, JSONValueType<T> type) {
         try {
             return path.access(this, reference -> reference.get(type), false);
         }
@@ -160,7 +162,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         }
     }
 
-    public boolean delete(@NotNull JSONPath path) {
+    public boolean delete(JSONPath path) {
         try {
             return path.access(this, JSONPath.JSONPathReference::delete, false);
         }
@@ -169,7 +171,7 @@ public final class JSONObject extends JSONValue<Map<String, JSONValue<?>>> imple
         }
     }
 
-    public void set(@NotNull JSONPath path, Object value) {
+    public void set(JSONPath path, Object value) {
         try {
             path.access(this, reference -> {
                 reference.set(value);

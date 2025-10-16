@@ -37,8 +37,8 @@ public class TypedMojangsonList<T extends MojangsonValue<?>> extends MojangsonVa
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        if (index >= 0) return MojangsonValueType.of(value.get(index)).equals(type);
-        else return MojangsonValueType.of(value.get(value.size() + index)).equals(type);
+        if (index >= 0) return MojangsonValueType.get(value.get(index)).equals(type);
+        else return MojangsonValueType.get(value.get(value.size() + index)).equals(type);
     }
 
     public T get(int index) {

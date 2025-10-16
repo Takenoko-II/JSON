@@ -1,11 +1,12 @@
 package com.gmail.takenokoii78.json;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@NullMarked
 public class JSONPathParser {
     private static final Set<Character> WHITESPACE = Set.of(' ');
 
@@ -21,15 +22,15 @@ public class JSONPathParser {
 
     private static final String EMPTY_STRING = "";
 
-    private String text;
+    private final String text;
 
     private int location = -1;
 
-    private JSONPathParser() {
-
+    private JSONPathParser(String text) {
+        this.text = text;
     }
 
-    private @NotNull JSONParseException newException(@NotNull String message) {
+    private JSONParseException exception(String message) {
         return new JSONParseException(message, text, location);
     }
 
@@ -39,7 +40,7 @@ public class JSONPathParser {
 
     private char peek(boolean ignorable) {
         if (isOver()) {
-            throw newException("文字列の長さが期待より不足しています");
+            throw exception("文字列の長さが期待より不足しています");
         }
 
         final char next = text.charAt(location + 1);
@@ -52,7 +53,7 @@ public class JSONPathParser {
 
     private void next() {
         if (isOver()) {
-            throw newException("文字列の長さが期待より不足しています");
+            throw exception("文字列の長さが期待より不足しています");
         }
 
         location++;
@@ -71,7 +72,7 @@ public class JSONPathParser {
         }
     }
 
-    private boolean test(@NotNull String next) {
+    private boolean test(String next) {
         if (isOver()) return false;
 
         whitespace();
@@ -85,7 +86,7 @@ public class JSONPathParser {
         return test(String.valueOf(next));
     }
 
-    private boolean next(@NotNull String next) {
+    private boolean next(String next) {
         if (isOver()) return false;
 
         whitespace();
@@ -105,9 +106,9 @@ public class JSONPathParser {
         return next(String.valueOf(next));
     }
 
-    private void expect(@NotNull String next) {
+    private void expect(String next) {
         if (!next(next)) {
-            throw newException("期待された文字列は" + next + "でしたが、テストが偽を返しました");
+            throw exception("期待された文字列は" + next + "でしたが、テストが偽を返しました");
         }
     }
 
@@ -115,36 +116,37 @@ public class JSONPathParser {
         expect(String.valueOf(next));
     }
 
-    private @NotNull String string() {
-        final StringBuilder sb = new StringBuilder();
-        char current = peek(true);
+    private String string() {
+        char current = peek(false);
+        final StringBuilder string = new StringBuilder();
 
         if (QUOTES.contains(current)) {
-            next();
-
             final char quote = current;
+            next();
             char previous = current;
             current = peek(false);
             next();
 
             while (previous == ESCAPE || current != quote) {
                 if (previous == ESCAPE && current == quote) {
-                    sb.delete(sb.length() - 1, sb.length());
+                    string.delete(string.length() - 1, string.length());
                 }
 
-                sb.append(current);
+                string.append(current);
 
                 previous = current;
                 current = peek(false);
                 next();
             }
-
-            return sb.toString();
         }
-        else throw newException("文字列はクォーテーションで開始される必要があります");
+        else {
+            throw exception("文字列はクォーテーションで開始される必要があります");
+        }
+
+        return string.toString();
     }
 
-    private @NotNull String[] objectKey(boolean isRoot) {
+    private String[] objectKey(boolean isRoot) {
         if (!isRoot) expect(DOT);
 
         final StringBuilder sb = new StringBuilder();
@@ -154,11 +156,11 @@ public class JSONPathParser {
             final char c = peek(false);
 
             if (WHITESPACE.contains(c)) {
-                throw newException("期待された文字は非記号文字です");
+                throw exception("期待された文字は非記号文字です");
             }
             else if (QUOTES.contains(c)) {
                 if (!sb.isEmpty()) {
-                    throw newException("クォーテーションはキーの途中に含めることができない文字です");
+                    throw exception("クォーテーションはキーの途中に含めることができない文字です");
                 }
 
                 sb.append(string());
@@ -175,6 +177,13 @@ public class JSONPathParser {
 
                 while (!isOver()) {
                     final char c2 = peek(false);
+
+                    if (QUOTES.contains(c2)) {
+                        sb2.append(c2)
+                            .append(string())
+                            .append(c2);
+                        continue;
+                    }
 
                     if (c2 == ARRAY_BRACES[0] || c2 == OBJECT_BRACES[0]) {
                         depth++;
@@ -205,7 +214,7 @@ public class JSONPathParser {
         return new String[]{sb.toString()};
     }
 
-    private @NotNull String arrayIndex() {
+    private String arrayIndex() {
         expect(ARRAY_BRACES[0]);
 
         if (next(ARRAY_BRACES[1])) {
@@ -217,6 +226,13 @@ public class JSONPathParser {
 
         while (!isOver()) {
             final char c = peek(false);
+
+            if (QUOTES.contains(c)) {
+                sb.append(c)
+                    .append(string())
+                    .append(c);
+                continue;
+            }
 
             if (c == ARRAY_BRACES[0]) {
                 depth++;
@@ -238,7 +254,7 @@ public class JSONPathParser {
         return sb.toString();
     }
 
-    private @NotNull JSONPathNode<?, ?> root() {
+    private JSONPathNode<?, ?> root() {
         final List<Object> list = new ArrayList<>();
 
         list.add(objectKey(true));
@@ -251,7 +267,7 @@ public class JSONPathParser {
                 list.add(arrayIndex());
             }
             else {
-                throw newException("不明な文字です: " + peek(false));
+                throw exception("不明な文字です: " + peek(false));
             }
         }
 
@@ -266,7 +282,7 @@ public class JSONPathParser {
                 else if (strings.length == 2) {
                     node = new JSONPathNode.ObjectKeyCheckerNode(strings[0], JSONParser.object(strings[1]), node);
                 }
-                else throw newException("NEVER HAPPENS");
+                else throw exception("NEVER HAPPENS");
             }
             else if (value instanceof String string) {
                 if (string.matches("^[+-]?[1-9]*\\d+|0$")) {
@@ -276,33 +292,27 @@ public class JSONPathParser {
                     node = new JSONPathNode.ArrayIndexFinderNode(JSONParser.object(string), node);
                 }
             }
-            else throw newException("NEVER HAPPENS");
+            else throw exception("NEVER HAPPENS");
         }
 
         if (node == null) {
-            throw newException("空のパスは解析できません");
+            throw exception("空のパスは解析できません");
         }
 
         return node;
     }
 
     private void extraChars() {
-        if (!isOver()) throw newException("解析終了後、末尾に無効な文字列(" + text.substring(location) + ")を検出しました");
+        if (!isOver()) throw exception("解析終了後、末尾に無効な文字列(" + text.substring(location) + ")を検出しました");
     }
 
-    private @NotNull JSONPath parse() {
-        if (text == null) {
-            throw newException("textがnullです");
-        }
-
+    private JSONPath parse() {
         final JSONPathNode<?, ?> rootNode = root();
         extraChars();
         return new JSONPath(rootNode);
     }
 
-    protected static @NotNull JSONPath parse(@NotNull String path) throws JSONParseException {
-        final JSONPathParser parser = new JSONPathParser();
-        parser.text = path;
-        return parser.parse();
+    protected static JSONPath parse(String path) throws JSONParseException {
+        return new JSONPathParser(path).parse();
     }
 }

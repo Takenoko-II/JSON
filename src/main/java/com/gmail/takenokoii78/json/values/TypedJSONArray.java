@@ -2,22 +2,23 @@ package com.gmail.takenokoii78.json.values;
 
 import com.gmail.takenokoii78.json.JSONValue;
 import com.gmail.takenokoii78.json.JSONValueType;
-import com.gmail.takenokoii78.json.JSONValueTypes;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@NullMarked
 public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> implements JSONIterable<T> {
     private final JSONValueType<T> type;
 
-    public TypedJSONArray(@NotNull JSONValueType<T> type) {
+    public TypedJSONArray(JSONValueType<T> type) {
         super(new ArrayList<>());
         this.type = type;
     }
 
-    public TypedJSONArray(@NotNull JSONValueType<T> type, @NotNull List<T> list) {
+    public TypedJSONArray(JSONValueType<T> type, @NotNull List<T> list) {
         super(new ArrayList<>(list));
         this.type = type;
     }
@@ -39,8 +40,8 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        if (index >= 0) return JSONValueType.of(value.get(index)).equals(type);
-        else return JSONValueType.of(value.get(value.size() + index)).equals(type);
+        if (index >= 0) return JSONValueType.get(value.get(index)).equals(type);
+        else return JSONValueType.get(value.get(value.size() + index)).equals(type);
     }
 
     public T get(int index) {
@@ -103,12 +104,12 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
     }
 
     @Override
-    public @NotNull TypedJSONArray<T> copy() {
+    public TypedJSONArray<T> copy() {
         return untyped().copy().typed(type);
     }
 
     @Override
-    public @NotNull Iterator<T> iterator() {
+    public Iterator<T> iterator() {
         final List<T> list = new ArrayList<>();
 
         for (int i = 0; i < this.value.size(); i++) {
@@ -118,7 +119,7 @@ public class TypedJSONArray<T extends JSONValue<?>> extends JSONValue<List<T>> i
         return list.iterator();
     }
 
-    public @NotNull JSONArray untyped() {
+    public JSONArray untyped() {
         final JSONArray array = new JSONArray();
         for (int i = 0; i < length(); i++) {
             array.add(get(i));

@@ -34,8 +34,8 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
             throw new IllegalArgumentException("インデックス '" + index + "' は存在しません");
         }
 
-        if (index >= 0) return MojangsonValueType.of(value.get(index));
-        else return MojangsonValueType.of(value.get(value.size() + index));
+        if (index >= 0) return MojangsonValueType.get(value.get(index));
+        else return MojangsonValueType.get(value.get(value.size() + index));
     }
 
     public <T extends MojangsonValue<?>> T get(int index, @NotNull MojangsonValueType<T> type) {
@@ -47,8 +47,8 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
             throw new IllegalArgumentException("インデックス '" + index + "' は期待される型の値と紐づけられていません");
         }
 
-        if (index >= 0) return type.cast(value.get(index));
-        else return type.cast(value.get(value.size() + index));
+        if (index >= 0) return type.toMojangson(value.get(index));
+        else return type.toMojangson(value.get(value.size() + index));
     }
 
     public void add(int index, Object value) {
@@ -56,12 +56,12 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        if (index >= 0) this.value.add(index, MojangsonValueType.of(value).cast(value));
-        else this.value.add(this.value.size() + index, MojangsonValueType.of(value).cast(value));
+        if (index >= 0) this.value.add(index, MojangsonValueType.get(value).toMojangson(value));
+        else this.value.add(this.value.size() + index, MojangsonValueType.get(value).toMojangson(value));
     }
 
     public void add(Object value) {
-        this.value.add(MojangsonValueType.of(value).cast(value));
+        this.value.add(MojangsonValueType.get(value).toMojangson(value));
     }
 
     public void set(int index, Object value) {
@@ -69,8 +69,8 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
             throw new IllegalArgumentException("そのインデックスは使用できません");
         }
 
-        if (index >= 0) this.value.set(index, MojangsonValueType.of(value).cast(value));
-        else this.value.set(this.value.size() + index, MojangsonValueType.of(value).cast(value));
+        if (index >= 0) this.value.set(index, MojangsonValueType.get(value).toMojangson(value));
+        else this.value.set(this.value.size() + index, MojangsonValueType.get(value).toMojangson(value));
     }
 
     public boolean delete(int index) {
@@ -137,7 +137,7 @@ public class MojangsonList extends MojangsonValue<List<MojangsonValue<?>>> imple
 
     @Override
     public @NotNull MojangsonList copy() {
-        return MojangsonValueTypes.LIST.cast(toList());
+        return MojangsonValueTypes.LIST.toMojangson(toList());
     }
 
     public boolean isSuperOf(@NotNull MojangsonList other) {

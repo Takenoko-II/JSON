@@ -1,9 +1,10 @@
 package com.gmail.takenokoii78.json.values;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class JSONNumber extends JSONPrimitive<Number> {
-    private JSONNumber(@NotNull Number value) {
+    private JSONNumber(Number value) {
         super(value);
     }
 
@@ -31,7 +32,7 @@ public final class JSONNumber extends JSONPrimitive<Number> {
         return value.doubleValue();
     }
 
-    public static @NotNull JSONNumber valueOf(@NotNull Number value) {
+    public static JSONNumber valueOf(Number value) {
         return new JSONNumber(value);
     }
 }

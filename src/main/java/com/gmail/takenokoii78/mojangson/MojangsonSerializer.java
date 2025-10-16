@@ -1,13 +1,15 @@
 package com.gmail.takenokoii78.mojangson;
 
 import com.gmail.takenokoii78.mojangson.values.*;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@NullMarked
 public class MojangsonSerializer {
     private final int indentationSpaceCount;
 
@@ -15,17 +17,17 @@ public class MojangsonSerializer {
 
     private final MojangsonStructure value;
 
-    private MojangsonSerializer(@NotNull MojangsonStructure value, int indentationSpaceCount, boolean asJsonString) {
+    private MojangsonSerializer(MojangsonStructure value, int indentationSpaceCount, boolean asJsonString) {
         this.value = value;
         this.indentationSpaceCount = indentationSpaceCount;
         this.asJsonString = asJsonString;
     }
 
-    private @NotNull StringBuilder serialize() throws MojangsonSerializationException {
+    private StringBuilder serialize() throws MojangsonSerializationException {
         return serialize(this.value, 1);
     }
 
-    private @NotNull StringBuilder serialize(Object value, int indentation) throws MojangsonSerializationException {
+    private StringBuilder serialize(@Nullable Object value, int indentation) throws MojangsonSerializationException {
         return switch (value) {
             case Boolean v -> bool(v);
             case Number v -> number(v);
@@ -76,7 +78,7 @@ public class MojangsonSerializer {
         return stringBuilder;
     }
 
-    private StringBuilder iterable(@NotNull MojangsonIterable<?> iterable, int indentation) {
+    private StringBuilder iterable(MojangsonIterable<?> iterable, int indentation) {
         StringBuilder stringBuilder = new StringBuilder().append(ARRAY_LIST_BRACES[0]);
 
         if (!asJsonString && ITERABLE_TYPE_SYMBOLS.containsKey(iterable.getClass())) {
@@ -113,7 +115,7 @@ public class MojangsonSerializer {
         return stringBuilder.append(ARRAY_LIST_BRACES[1]);
     }
 
-    private StringBuilder string(@NotNull String value) {
+    private StringBuilder string(String value) {
         boolean requireQuote = asJsonString || SYMBOLS_ON_STRING.stream().anyMatch(sym -> value.contains(sym.toString()));
         final StringBuilder stringBuilder = new StringBuilder();
 
@@ -129,7 +131,7 @@ public class MojangsonSerializer {
         else return new StringBuilder("false");
     }
 
-    private StringBuilder number(@NotNull Number value) {
+    private StringBuilder number(Number value) {
         final StringBuilder stringBuilder = new StringBuilder(String.valueOf(value));
 
         if (!asJsonString && NUMBER_TYPE_SYMBOLS.containsKey(value.getClass())) {
@@ -205,11 +207,11 @@ public class MojangsonSerializer {
         Double.class, 'd'
     ));
 
-    public static @NotNull String serialize(@NotNull MojangsonStructure structure) {
+    public static String serialize(MojangsonStructure structure) {
         return new MojangsonSerializer(structure, 4, false).serialize().toString();
     }
 
-    public static @NotNull String toJson(MojangsonStructure structure) {
+    public static String toJson(MojangsonStructure structure) {
         return new MojangsonSerializer(structure, 4, true).serialize().toString();
     }
 }

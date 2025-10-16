@@ -1,7 +1,8 @@
 package com.gmail.takenokoii78.json.values;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public interface JSONStructure {
-    @NotNull JSONStructure copy();
+    JSONStructure copy();
 }

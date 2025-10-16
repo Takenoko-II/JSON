@@ -1,13 +1,14 @@
 package com.gmail.takenokoii78.json.values;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class JSONString extends JSONPrimitive<String> {
-    private JSONString(@NotNull String value) {
+    private JSONString(String value) {
         super(value);
     }
 
-    public static @NotNull JSONString valueOf(@NotNull String value) {
+    public static JSONString valueOf(String value) {
         return new JSONString(value);
     }
 }

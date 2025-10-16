@@ -1,40 +1,38 @@
 package com.gmail.takenokoii78.json;
 
-import com.gmail.takenokoii78.json.values.JSONArray;
-import com.gmail.takenokoii78.json.values.JSONObject;
-import com.gmail.takenokoii78.json.values.JSONStructure;
-import com.gmail.takenokoii78.json.values.TypedJSONArray;
-import org.jetbrains.annotations.NotNull;
+import com.gmail.takenokoii78.json.values.*;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public final class JSONSerializer {
     private final int indentationSpaceCount;
 
     private final JSONStructure value;
 
-    private JSONSerializer(@NotNull JSONStructure value, int indentationSpaceCount) {
+    private JSONSerializer(JSONStructure value, int indentationSpaceCount) {
         this.value = value;
         this.indentationSpaceCount = indentationSpaceCount;
     }
 
-    private @NotNull StringBuilder serialize() throws JSONSerializationException {
+    private StringBuilder serialize() throws JSONSerializationException {
         return serialize(this.value, 1);
     }
 
-    private @NotNull StringBuilder serialize(Object value, int indentation) throws JSONSerializationException {
+    private StringBuilder serialize(@Nullable Object value, int indentation) throws JSONSerializationException {
         return switch (value) {
             case Boolean v -> bool(v);
             case Number v -> number(v);
             case String v -> string(v);
             case JSONObject v -> object(v, indentation);
-            case JSONArray v -> array(v, indentation);
-            case TypedJSONArray<?> v -> array(v.untyped(), indentation);
+            case JSONIterable<?> v -> iterable(v, indentation);
             case JSONValue<?> v -> serialize(v.value, indentation);
             case null -> new StringBuilder(NULL);
             default -> throw new JSONSerializationException("このオブジェクトは無効な型の値を含みます");
         };
     }
 
-    private @NotNull StringBuilder object(JSONObject value, int indentation) {
+    private StringBuilder object(JSONObject value, int indentation) {
         final String[] keys = value.keys().toArray(String[]::new);
 
         final StringBuilder stringBuilder = new StringBuilder().append(OBJECT_BRACE_START);
@@ -74,27 +72,29 @@ public final class JSONSerializer {
         return stringBuilder;
     }
 
-    private @NotNull StringBuilder array(@NotNull JSONArray array, int indentation) {
+    private StringBuilder iterable(JSONIterable<?> iterable, int indentation) {
         StringBuilder stringBuilder = new StringBuilder().append(ARRAY_BRACE_START);
 
-        for (int i = 0; i < array.length(); i++) {
+        int i = 0;
+        for (final JSONValue<?> element : iterable) {
+            if (i >= 1) {
+                stringBuilder.append(COMMA);
+            }
+
             try {
-                final Object element = array.get(i, array.getTypeAt(i));
                 stringBuilder
                     .append(LINE_BREAK)
                     .append(indentation(indentation + 1))
                     .append(serialize(element, indentation + 1));
             }
             catch (IllegalArgumentException e) {
-                throw new JSONSerializationException("インデックス'" + i + "における無効な型: " + array.getTypeAt(i), e);
+                throw new JSONSerializationException("インデックス'" + i + "における無効な型: " + element.getClass().getName(), e);
             }
 
-            if (i != array.length() - 1) {
-                stringBuilder.append(COMMA);
-            }
+            i++;
         }
 
-        if (!array.isEmpty()) {
+        if (!iterable.isEmpty()) {
             stringBuilder
                 .append(LINE_BREAK)
                 .append(indentation(indentation));
@@ -103,23 +103,23 @@ public final class JSONSerializer {
         return stringBuilder.append(ARRAY_BRACE_END);
     }
 
-    private @NotNull StringBuilder string(@NotNull String value) {
+    private StringBuilder string(String value) {
         return new StringBuilder()
             .append(QUOTE)
             .append(value.replaceAll("\"", "\\\\\""))
             .append(QUOTE);
     }
 
-    private @NotNull StringBuilder bool(boolean value) {
+    private StringBuilder bool(boolean value) {
         if (value) return new StringBuilder("true");
         else return new StringBuilder("false");
     }
 
-    private @NotNull StringBuilder number(@NotNull Number value) {
+    private StringBuilder number(Number value) {
         return new StringBuilder(String.valueOf(value));
     }
 
-    private @NotNull String indentation(int indentation) {
+    private String indentation(int indentation) {
         return String
             .valueOf(WHITESPACE)
             .repeat(indentationSpaceCount)
@@ -146,7 +146,7 @@ public final class JSONSerializer {
 
     private static final String NULL = "null";
 
-    public static @NotNull String serialize(@NotNull JSONStructure structure) {
+    public static String serialize(JSONStructure structure) {
         return new JSONSerializer(structure, 4).serialize().toString();
     }
 }

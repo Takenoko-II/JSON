@@ -33,6 +33,6 @@ public class MojangsonNumber<T extends Number> extends MojangsonPrimitive<T> {
     }
 
     public static @NotNull MojangsonNumber<?> upcastedValueOf(@NotNull Number value) {
-        return (MojangsonNumber<?>) MojangsonValueType.of(value).cast(value);
+        return (MojangsonNumber<?>) MojangsonValueType.get(value).toMojangson(value);
     }
 }

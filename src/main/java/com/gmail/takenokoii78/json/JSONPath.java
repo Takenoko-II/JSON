@@ -3,23 +3,22 @@ package com.gmail.takenokoii78.json;
 import com.gmail.takenokoii78.json.values.JSONArray;
 import com.gmail.takenokoii78.json.values.JSONObject;
 import com.gmail.takenokoii78.json.values.JSONStructure;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+@NullMarked
 public final class JSONPath {
     private final JSONPathNode<?, ?> root;
 
-    JSONPath(@NotNull JSONPathNode<?, ?> root) {
+    JSONPath(JSONPathNode<?, ?> root) {
         this.root = root;
     }
 
-    private @Nullable JSONValue<?> getNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p) {
+    private @Nullable JSONValue<?> getNextValue(JSONPathNode<?, ?> node, @Nullable JSONValue<?> p) {
         switch (node) {
             case JSONPathNode.ObjectKeyNode objectKeyNode -> {
                 if (!(p instanceof JSONObject object)) {
@@ -49,7 +48,7 @@ public final class JSONPath {
         }
     }
 
-    private <U> @Nullable U useNextValue(@NotNull JSONPathNode<?, ?> node, @Nullable JSONValue<?> p, BiFunction<JSONStructure, Object, U> function) {
+    private <U> @Nullable U useNextValue(JSONPathNode<?, ?> node, @Nullable JSONValue<?> p, BiFunction<JSONStructure, Object, U> function) {
         switch (node) {
             case JSONPathNode.ObjectKeyNode objectKeyNode -> {
                 if (!(p instanceof JSONObject object)) {
@@ -79,7 +78,7 @@ public final class JSONPath {
         }
     }
 
-    private <U> @Nullable U onLastNode(@NotNull JSONObject jsonObject, @NotNull BiFunction<JSONStructure, Object, U> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
+    private <U> @Nullable U onLastNode(JSONObject jsonObject, BiFunction<JSONStructure, Object, U> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
         JSONPathNode<?, ?> node = root;
         JSONValue<?> p = jsonObject;
 
@@ -103,7 +102,7 @@ public final class JSONPath {
         return useNextValue(node, p, function);
     }
 
-    public <T> T access(@NotNull JSONObject jsonObject, @NotNull Function<JSONPathReference<?, ?>, T> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
+    public <T> T access(JSONObject jsonObject, Function<JSONPathReference<?, ?>, T> function, boolean isForcedAccess) throws JSONInaccessiblePathException {
         return onLastNode(jsonObject, (lastStructure, nodeParameter) -> {
             final JSONPathReference<?, ?> reference = switch (lastStructure) {
                 case JSONObject object -> new JSONPathReference.JSONObjectPathReference(object, (String) nodeParameter);
@@ -127,7 +126,7 @@ public final class JSONPath {
         return i;
     }
 
-    public @NotNull JSONPath slice(int begin, int end) {
+    public JSONPath slice(int begin, int end) {
         if (begin < 0 || end > length() || begin > end) {
             throw new IllegalArgumentException("インデックスが範囲外です");
         }
@@ -155,7 +154,7 @@ public final class JSONPath {
         return new JSONPath(beginNode);
     }
 
-    public @NotNull JSONPath parent() {
+    public JSONPath parent() {
         return slice(0, length() - 2);
     }
 
@@ -190,7 +189,7 @@ public final class JSONPath {
         else return toString().equals(obj.toString());
     }
 
-    public static @NotNull JSONPath of(@NotNull String path) throws JSONParseException {
+    public static JSONPath of(String path) throws JSONParseException {
         return JSONPathParser.parse(path);
     }
 
@@ -199,23 +198,23 @@ public final class JSONPath {
 
         protected final T parameter;
 
-        protected JSONPathReference(@NotNull S structure, @NotNull T parameter) {
+        protected JSONPathReference(S structure, T parameter) {
             this.structure = structure;
             this.parameter = parameter;
         }
 
         public abstract boolean has();
 
-        public abstract @NotNull JSONValueType<?> getType();
+        public abstract JSONValueType<?> getType();
 
-        public abstract <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type);
+        public abstract <U extends JSONValue<?>> U get(JSONValueType<U> type);
 
-        public abstract void set(@NotNull Object value);
+        public abstract void set(Object value);
 
         public abstract boolean delete();
 
         private static final class JSONObjectPathReference extends JSONPathReference<JSONObject, String> {
-            private JSONObjectPathReference(@NotNull JSONObject structure, @NotNull String parameter) {
+            private JSONObjectPathReference(JSONObject structure, String parameter) {
                 super(structure, parameter);
             }
 
@@ -224,19 +223,18 @@ public final class JSONPath {
                 return structure.has(parameter);
             }
 
-            @NotNull
             @Override
             public JSONValueType<?> getType() {
                 return structure.getTypeOf(parameter);
             }
 
             @Override
-            public <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type) {
+            public <U extends JSONValue<?>> U get(JSONValueType<U> type) {
                 return structure.get(parameter, type);
             }
 
             @Override
-            public void set(@NotNull Object value) {
+            public void set(Object value) {
                 structure.set(parameter, value);
             }
 
@@ -247,7 +245,7 @@ public final class JSONPath {
         }
 
         private static final class JSONArrayPathReference extends JSONPathReference<JSONArray, Integer> {
-            private JSONArrayPathReference(@NotNull JSONArray structure, @NotNull Integer parameter) {
+            private JSONArrayPathReference(JSONArray structure, Integer parameter) {
                 super(structure, parameter);
             }
 
@@ -256,19 +254,18 @@ public final class JSONPath {
                 return structure.has(parameter);
             }
 
-            @NotNull
             @Override
             public JSONValueType<?> getType() {
                 return structure.getTypeAt(parameter);
             }
 
             @Override
-            public <U extends JSONValue<?>> @NotNull U get(@NotNull JSONValueType<U> type) {
+            public <U extends JSONValue<?>> U get(JSONValueType<U> type) {
                 return structure.get(parameter, type);
             }
 
             @Override
-            public void set(@NotNull Object value) {
+            public void set(Object value) {
                 structure.set(parameter, value);
             }
 
@@ -280,7 +277,7 @@ public final class JSONPath {
     }
 
     public static final class JSONInaccessiblePathException extends Exception {
-        public JSONInaccessiblePathException(@NotNull Object nodeParameter) {
+        public JSONInaccessiblePathException(Object nodeParameter) {
             super("パスに対応する値へのアクセスに失敗しました: 条件 " + nodeParameter + " を満たすキーは存在しません");
         }
     }

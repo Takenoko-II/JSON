@@ -1,37 +1,39 @@
 package com.gmail.takenokoii78.json;
 
 import com.gmail.takenokoii78.json.values.*;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@NullMarked
 public final class JSONValueTypes {
     private JSONValueTypes() {}
 
-    public static final @NotNull JSONValueType<JSONBoolean> BOOLEAN = new JSONValueType<>(JSONBoolean.class) {
+    public static final JSONValueType<JSONBoolean> BOOLEAN = new JSONValueType<>(JSONBoolean.class) {
         @Override
-        public JSONBoolean cast(Object value) {
+        public JSONBoolean toJSON(@Nullable Object value) {
             if (value instanceof JSONBoolean v) return v;
             else if (value instanceof Boolean v) return JSONBoolean.valueOf(v);
             else throw new IllegalArgumentException("value is not a boolean value");
         }
     };
 
-    public static final @NotNull JSONValueType<JSONNumber> NUMBER = new JSONValueType<>(JSONNumber.class) {
+    public static final JSONValueType<JSONNumber> NUMBER = new JSONValueType<>(JSONNumber.class) {
         @Override
-        public JSONNumber cast(Object value) {
+        public JSONNumber toJSON(@Nullable Object value) {
             if (value instanceof JSONNumber v) return v;
             else if (value instanceof Number v) return JSONNumber.valueOf(v);
             else throw new IllegalArgumentException("value is not a number value");
         }
     };
 
-    public static final @NotNull JSONValueType<JSONString> STRING = new JSONValueType<>(JSONString.class) {
+    public static final JSONValueType<JSONString> STRING = new JSONValueType<>(JSONString.class) {
         @Override
-        public JSONString cast(Object value) {
+        public JSONString toJSON(@Nullable Object value) {
             return switch (value) {
                 case JSONString v -> v;
                 case String v -> JSONString.valueOf(v);
@@ -41,9 +43,9 @@ public final class JSONValueTypes {
         }
     };
 
-    public static final @NotNull JSONValueType<JSONObject> OBJECT = new JSONValueType<>(JSONObject.class) {
+    public static final JSONValueType<JSONObject> OBJECT = new JSONValueType<>(JSONObject.class) {
         @Override
-        public JSONObject cast(Object value) {
+        public JSONObject toJSON(@Nullable Object value) {
             if (value instanceof JSONObject jsonObject) return jsonObject;
 
             if (value instanceof Map<?, ?> map) {
@@ -52,7 +54,7 @@ public final class JSONValueTypes {
                 for (final Object key : map.keySet()) {
                     if (key instanceof String string) {
                         final Object val = map.get(string);
-                        object.put(string, JSONValueType.of(val).cast(val));
+                        object.put(string, JSONValueType.get(val).toJSON(val));
                     }
                     else {
                         throw new IllegalArgumentException("A key of Map is not a string");
@@ -65,9 +67,9 @@ public final class JSONValueTypes {
         }
     };
 
-    public static final @NotNull JSONValueType<JSONArray> ARRAY = new JSONValueType<>(JSONArray.class) {
+    public static final JSONValueType<JSONArray> ARRAY = new JSONValueType<>(JSONArray.class) {
         @Override
-        public JSONArray cast(Object value) {
+        public JSONArray toJSON(@Nullable Object value) {
             switch (value) {
                 case JSONArray jsonArray -> {
                     return jsonArray;
@@ -79,7 +81,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -88,7 +90,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -97,7 +99,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -106,7 +108,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -115,7 +117,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -124,7 +126,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -133,7 +135,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -142,7 +144,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -151,7 +153,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -160,7 +162,7 @@ public final class JSONValueTypes {
                     final List<JSONValue<?>> listOfJSONValue = new ArrayList<>();
 
                     for (final Object element : iterable) {
-                        listOfJSONValue.add(JSONValueType.of(element).cast(element));
+                        listOfJSONValue.add(JSONValueType.get(element).toJSON(element));
                     }
 
                     return new JSONArray(listOfJSONValue);
@@ -173,9 +175,9 @@ public final class JSONValueTypes {
         }
     };
 
-    public static final @NotNull JSONValueType<JSONNull> NULL = new JSONValueType<>(JSONNull.class) {
+    public static final JSONValueType<JSONNull> NULL = new JSONValueType<>(JSONNull.class) {
         @Override
-        public JSONNull cast(Object value) {
+        public JSONNull toJSON(@Nullable Object value) {
             if (value instanceof JSONNull jsonNull) return jsonNull;
             else if (value == null) return JSONNull.NULL;
             else throw new IllegalArgumentException("value is not a null value");
